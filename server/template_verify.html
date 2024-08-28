@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashHere - Account Verification Confirmation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 40px;
+        }
+
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #555;
+            margin: 20px 0 10px;
+        }
+
+        p {
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        a:hover {
+            background-color: #1e70bf;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to CashHere!</h1>
+    <p>Thank you for registering as a cashier. To ensure the security of your account, please verify your email address by clicking the button below:</p>
+    <h2>Your username: {{username}}</h2>
+    <a href="{{link}}" style="margin-top: 20px;">Verify Email</a>
+    <p>If you didn't create an account with CashHere, please ignore this email.</p>
+    <p>Thank you for choosing CashHere for your cashier needs.</p>
+</body>
+</html>

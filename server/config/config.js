@@ -6,6 +6,7 @@ module.exports = {
     password: process.env.SQL_PASS,
     database: process.env.SQL_DATABASE,
     host: process.env.SQL_HOST,
+    port: process.env.SQL_PORT,
     dialect: 'mysql',
     dialectModule: require('mysql2'),
     timezone: '+07:00'
@@ -15,6 +16,7 @@ module.exports = {
     password: process.env.SQL_PASS,
     database: process.env.SQL_DATABASE,
     host: process.env.SQL_HOST,
+    port: process.env.SQL_PORT,
     dialect: 'mysql'
   },
   production: {
@@ -22,6 +24,7 @@ module.exports = {
     password: process.env.SQL_PASS,
     database: process.env.SQL_DATABASE,
     host: process.env.SQL_HOST,
+    port: process.env.SQL_PORT,
     dialect: 'mysql',
     timezone: '+07:00'
   }

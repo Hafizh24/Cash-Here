@@ -8,6 +8,10 @@ app.use(cors())
 app.use(express.json())
 app.use('/public', express.static('./public'))
 
+app.get('/', (req, res) => {
+  res.send('Hello world')
+})
+
 app.get('/api', (req, res) => {
   res.send('This is my API')
 })

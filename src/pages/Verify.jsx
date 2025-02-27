@@ -1,19 +1,23 @@
-import { Box, Stack, Button, Heading, Center, useColorModeValue, useToast } from '@chakra-ui/react';
+import { Box, Stack, Button, Heading, Center, useColorModeValue, useToast, Spinner } from '@chakra-ui/react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from '../axios';
+import { useState } from 'react';
 
 export default function Verify() {
-  const params = useParams();
+  const { token } = useParams();
   const toast = useToast();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async () => {
+    setIsLoading(true);
+
     try {
       await axios.patch(
         'auth/verify',
         {},
         {
-          headers: { Authorization: `Bearer ${params.token}` },
+          headers: { Authorization: `Bearer ${token}` },
         },
       );
 
@@ -26,7 +30,15 @@ export default function Verify() {
       });
       navigate('/');
     } catch (err) {
-      console.log(err);
+      toast({
+        title: 'Error',
+        description: `${err.response.data.message} || Something went wrong`,
+        status: 'error',
+        duration: 3000,
+        position: 'top',
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -47,8 +59,14 @@ export default function Verify() {
           </Heading>
         </Stack>
         <Box>
-          <Button colorScheme="teal" size={'lg'} onClick={handleSubmit}>
-            Verify Account
+          <Button
+            colorScheme="teal"
+            size={'lg'}
+            onClick={handleSubmit}
+            isLoading={isLoading}
+            loadingText="Verifying..."
+          >
+            {isLoading ? <Spinner size={'sm'} /> : 'Verify'}
           </Button>
         </Box>
       </Stack>

@@ -1,38 +1,43 @@
-import { Flex } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-// import AddCategory from './addCategory';
-// import UpdateCategory from './updateCategory';
+import { Flex, useToast } from '@chakra-ui/react';
+import { useCallback, useEffect, useState } from 'react';
 import axios from '../axios';
-import UpdateCategory from '../components/category/UpdateCategory';
+import ListCategory from '../components/category/ListCategory';
 import AddCategory from '../components/category/AddCategory';
+import { useSelector } from 'react-redux';
 
 const Category = () => {
-  const [data, setData] = useState([]);
-  //   const token = localStorage.getItem('token');
+  const [categories, setCategories] = useState([]);
+  const token = useSelector((state) => state.user.token);
+  const toast = useToast();
 
-  const fetchAPI = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
-      //   const response = await axios.get('categories', {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   });
-      const response = await axios.get('categories');
+      const response = await axios.get('categories', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      setData(response.data.data);
+      setCategories(response.data.data);
     } catch (err) {
-      console.log(err);
+      toast({
+        title: 'Error',
+        description: err.response.data.message,
+        status: 'error',
+        duration: 3000,
+        position: 'top',
+      });
     }
-  };
+  }, [token, toast]);
 
   useEffect(() => {
-    fetchAPI();
-  }, []);
+    fetchCategories();
+  }, [fetchCategories]);
 
   return (
     <Flex minH={'100vh'} minW={'81vw'} align={'center'} justify={'center'} bgColor={'#f0f0ec'} direction={'column'}>
-      <AddCategory fetchAPI={fetchAPI} />
-      <UpdateCategory data={data} fetchAPI={fetchAPI} />
+      <AddCategory fetchCategories={fetchCategories} />
+      <ListCategory categories={categories} fetchCategories={fetchCategories} />
     </Flex>
   );
 };

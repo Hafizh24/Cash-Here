@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-
 import { WarningIcon } from '@chakra-ui/icons';
 import {
   Button,
@@ -15,31 +14,36 @@ import {
 } from '@chakra-ui/react';
 import axios from '../../axios';
 
-export default function ModalDeleteProduct({ isOpen, onClose, products, fetchProducts }) {
+export default function ModalDeleteCategory({ isOpen, onClose, clickedData, fetchCategories, setIsLoading }) {
   const toast = useToast();
 
-  const handleDelete = async () => {
+  const handleDelete = async (id) => {
+    setIsLoading(true);
+
     try {
-      await axios.patch(`products/delete/${products.id}`);
+      const response = await axios.patch(`categories/delete/${id}`);
 
-      toast({
-        title: 'Success',
-        description: 'Selected product has been deleted',
-        status: 'success',
-        duration: 3000,
-        position: 'top',
-      });
+      if (response.status === 200) {
+        toast({
+          title: 'Success',
+          description: 'Selected category has been deleted',
+          status: 'success',
+          duration: 3000,
+          position: 'top',
+        });
 
-      fetchProducts();
+        fetchCategories();
+      }
     } catch (err) {
       toast({
         title: 'Error',
-        description: err?.response?.data?.message || "Selected product can't be deleted",
+        description: err?.response?.data?.message || "Selected category can't be deleted",
         status: 'error',
         duration: 3000,
         position: 'top',
       });
     } finally {
+      setIsLoading(false);
       onClose();
     }
   };
@@ -54,14 +58,20 @@ export default function ModalDeleteProduct({ isOpen, onClose, products, fetchPro
         <ModalCloseButton />
         <ModalBody>
           <Text>
-            All data related to <span style={{ color: 'red' }}>{products.name}</span> will be deleted.
+            All data related to <span style={{ color: 'red' }}>{clickedData.name}</span> will be deleted.
           </Text>
         </ModalBody>
         <ModalFooter>
-          <Button bgColor={'#3C6255'} _hover={{ bg: '#61876E' }} color={'white'} mr={3} onClick={onClose}>
+          <Button colorScheme="blue" mr={3} onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="ghost" colorScheme="red" onClick={() => handleDelete()}>
+          <Button
+            variant="ghost"
+            colorScheme="red"
+            onClick={() => {
+              handleDelete(clickedData?.id);
+            }}
+          >
             Delete
           </Button>
         </ModalFooter>

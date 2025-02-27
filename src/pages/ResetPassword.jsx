@@ -27,16 +27,12 @@ export default function ResetPassword() {
       .required('Confirm Password tidak boleh kosong'),
   });
 
-  const handleSubmit = async (data) => {
+  const handleSubmit = async (values, action) => {
     try {
-      console.log(data);
-
-      await axios.patch('users/update-user-password', data, {
+      await axios.patch('users/update-user-password', values, {
         headers: { Authorization: `Bearer ${params.token}` },
       });
-      //   await axios.patch('users/update-user-password', data, {
-      //     headers: { Authorization: `Bearer ${params.token}` },
-      //   });
+
       toast({
         title: 'Success',
         description: `Password has been updated`,
@@ -46,7 +42,15 @@ export default function ResetPassword() {
       });
       navigate('/');
     } catch (err) {
-      console.log(err);
+      toast({
+        title: 'Error',
+        description: `${err.response.data.message}`,
+        status: 'error',
+        duration: 3000,
+        position: 'top',
+      });
+    } finally {
+      action.setSubmitting(false);
     }
   };
 
@@ -56,10 +60,7 @@ export default function ResetPassword() {
       confirmPassword: '',
     },
     validationSchema: ResetPasswordSchema,
-    onSubmit: (values, action) => {
-      handleSubmit(values);
-      action.resetForm();
-    },
+    onSubmit: handleSubmit,
   });
   return (
     <Stack spacing={8} mx={'auto'} maxW={'lg'} minW={'32vw'} py={12} px={6}>
@@ -82,11 +83,11 @@ export default function ResetPassword() {
                 _focus={{ backgroundColor: '#3C6255', color: 'white' }}
                 error={formik.touched.password && Boolean(formik.errors.password)}
               />
-              {formik.touched.password && formik.errors.password ? (
+              {formik.touched.password && formik.errors.password && (
                 <Text mt={2} style={{ color: 'red' }}>
                   {formik.errors.password}
                 </Text>
-              ) : null}
+              )}
             </FormControl>
             <FormControl>
               <FormLabel>Confirm Password</FormLabel>
@@ -101,11 +102,11 @@ export default function ResetPassword() {
                 _focus={{ backgroundColor: '#3C6255', color: 'white' }}
                 error={formik.touched.confirmPassword && Boolean(formik.errors.confirmPassword)}
               />
-              {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
+              {formik.touched.confirmPassword && formik.errors.confirmPassword && (
                 <Text mt={2} style={{ color: 'red' }}>
                   {formik.errors.confirmPassword}
                 </Text>
-              ) : null}
+              )}
             </FormControl>
             <Stack>
               <Button type="submit" bg={'#3C6255'} color={'white'} _hover={{ bg: '#61876E' }} rounded={'full'}>

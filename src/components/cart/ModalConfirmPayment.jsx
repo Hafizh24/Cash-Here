@@ -9,23 +9,23 @@ import {
   Button,
 } from '@chakra-ui/react';
 
-export default function ModalConfirmPayment({ isPaymentModalOpen, onPaymentModalClose, handleSubmit }) {
+export default function ModalConfirmPayment({ isOpen, onClose, handleSubmit }) {
   return (
     <>
-      <Modal isOpen={isPaymentModalOpen} onClose={onPaymentModalClose} isCentered>
+      <Modal isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Are you sure to proceed the order</ModalHeader>
           <ModalCloseButton />
           <ModalFooter>
-            <Button colorScheme={'red'} mr={3} onClick={onPaymentModalClose}>
+            <Button colorScheme={'red'} mr={3} onClick={onClose}>
               Cancel
             </Button>
             <Button
               colorScheme="green"
               onClick={() => {
                 handleSubmit();
-                onPaymentModalClose();
+                onClose();
               }}
             >
               Continue

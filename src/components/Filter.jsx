@@ -4,51 +4,46 @@ import { Button, Input, Select, Stack } from '@chakra-ui/react';
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
 import axios from '../axios';
+import { useSelector } from 'react-redux';
 
-export default function Filter({ apiProduct, setFilteredProduct, setCurrentPage }) {
-  // const token = localStorage.getItem('token');
-  const [orderBy, setOrderBy] = useState('ByName');
-  const [category, setCategory] = useState([]);
+export default function Filter({ products, setFilteredProduct, setCurrentPage }) {
+  const [categories, setCategories] = useState([]);
+  const token = useSelector((state) => state.user.token);
 
-  const getCategory = async () => {
+  const fetchCategories = async () => {
     try {
-      const response = await axios.get('categories');
-      setCategory(response.data.data);
+      const response = await axios.get('categories', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCategories(response.data.data);
     } catch (err) {
       console.log(err.response.data.message);
     }
   };
 
-  const handleSearch = (values) => {
-    // console.log(values);
-    // console.log(apiProduct);
-    // console.log(orderBy);
+  useEffect(() => {
+    fetchCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  const handleSearchAndSort = (values) => {
+    const keyword = values.name.toLowerCase();
     const filterCategory = parseInt(values.category);
 
-    const keyword = values.name;
-
-    const filteredItems = apiProduct.filter(
+    let filteredItems = products.filter(
       (item) =>
-        item.name.toLowerCase().includes(keyword.toLowerCase()) &&
-        (values.category === '' || item.category_id === filterCategory),
+        item.name.toLowerCase().includes(keyword) && (values.category === '' || item.category_id === filterCategory),
     );
 
-    if (orderBy === 'ByName') {
-      filteredItems.sort((a, b) => {
-        if (a.name.toLowerCase() > b.name.toLowerCase()) {
-          return values.sort_alphabetical === 'ASC' ? 1 : -1;
-        }
-        return values.sort_alphabetical === 'ASC' ? -1 : 1;
-      });
-    } else if (orderBy === 'ByPrice') {
-      filteredItems.sort((a, b) => {
-        if (a.price > b.price) {
-          return values.sort_price === 'ASC' ? 1 : -1;
-        }
-        return values.sort_price === 'ASC' ? -1 : 1;
-      });
-    }
+    filteredItems.sort((a, b) => {
+      const sortField = values.orderBy === 'ByPrice' ? 'price' : 'name';
+      const isAscending = values.sortOrder === 'ASC';
+
+      if (sortField === 'name') {
+        return isAscending ? a[sortField].localeCompare(b[sortField]) : b[sortField].localeCompare(a[sortField]);
+      }
+      return isAscending ? a[sortField] - b[sortField] : b[sortField] - a[sortField];
+    });
 
     setFilteredProduct(filteredItems);
     setCurrentPage(1);
@@ -58,39 +53,13 @@ export default function Filter({ apiProduct, setFilteredProduct, setCurrentPage 
     initialValues: {
       name: '',
       category: '',
-      sort_alphabetical: 'ASC',
-      sort_price: 'ASC',
+      orderBy: 'ByName',
+      sortOrder: 'ASC',
     },
-    onSubmit: (values, action) => {
-      // console.log(values);
-
-      // if (values.name !== '') {
-      //   params.append('name', values.name);
-      // }
-      // if (values.category !== '') {
-      //   params.append('category', values.category);
-      // }
-
-      // if (orderBy === 'ByName') {
-      //   params.append('sort_alphabetical', values.sort_alphabetical);
-      //   params.delete('sort_price');
-      // }
-
-      // if (orderBy === 'ByPrice') {
-      //   params.append('sort_price', values.sort_price);
-      //   params.delete('sort_alphabetical');
-      // }
-
-      // let queryString = params.toString();
-      // queryString = queryString.replace(/\+/g, '%');
-      handleSearch(values);
-      action.resetForm();
+    onSubmit: (values) => {
+      handleSearchAndSort(values);
     },
   });
-
-  useEffect(() => {
-    getCategory();
-  }, []);
 
   return (
     <form onSubmit={formik.handleSubmit}>
@@ -115,7 +84,7 @@ export default function Filter({ apiProduct, setFilteredProduct, setCurrentPage 
           focusBorderColor="#3C6255"
         >
           <option value="">Select category</option>
-          {category.map((item, index) => (
+          {categories.map((item, index) => (
             <option key={index} value={item.id}>
               {item.name}
             </option>
@@ -124,53 +93,27 @@ export default function Filter({ apiProduct, setFilteredProduct, setCurrentPage 
         <Select
           rounded={'full'}
           border={'1px'}
-          onChange={(e) => {
-            setOrderBy(e.target.value);
-          }}
-          value={orderBy}
+          name="orderBy"
+          value={formik.values.orderBy}
+          onChange={formik.handleChange}
           focusBorderColor="#3C6255"
           _hover={{}}
         >
           <option value={'ByName'}>Sort by name</option>
           <option value={'ByPrice'}>Sort by price</option>
         </Select>
-        {orderBy === 'ByName' ? (
-          <>
-            <Select
-              rounded={'full'}
-              name="sort_alphabetical"
-              value={formik.values.sort_alphabetical}
-              onChange={(e) => {
-                formik.setFieldValue('sort_alphabetical', e.target.value);
-              }}
-              defaultValue={''}
-              focusBorderColor="#3C6255"
-              _hover={{}}
-              border={'1px'}
-            >
-              <option value="ASC">A-Z</option>
-              <option value="DESC">Z-A</option>
-            </Select>
-          </>
-        ) : (
-          <>
-            <Select
-              rounded={'full'}
-              name="sort_price"
-              value={formik.values.sort_price}
-              onChange={(e) => {
-                formik.setFieldValue('sort_price', e.target.value);
-              }}
-              defaultValue={''}
-              focusBorderColor="#3C6255"
-              _hover={{}}
-              border={'1px'}
-            >
-              <option value="ASC">Price: Low to High</option>
-              <option value="DESC">Price: High to Low</option>
-            </Select>
-          </>
-        )}
+        <Select
+          rounded={'full'}
+          name="sortOrder"
+          value={formik.values.sortOrder}
+          onChange={formik.handleChange}
+          focusBorderColor="#3C6255"
+          border={'1px'}
+        >
+          <option value="ASC">Ascending</option>
+          <option value="DESC">Descending</option>
+        </Select>
+
         <Button rounded={'full'} type="submit" bgColor={'#3C6255'} _hover={{ bg: '#61876E' }} color={'white'}>
           <Search2Icon />
         </Button>
@@ -178,169 +121,3 @@ export default function Filter({ apiProduct, setFilteredProduct, setCurrentPage 
     </form>
   );
 }
-// export default function Filter({ setProductData, setIsLoaded }) {
-//   const token = localStorage.getItem('token');
-//   const [orderBy, setOrderBy] = useState('ByName');
-//   const [category, setCategory] = useState([]);
-
-//   const getCategory = async () => {
-//     try {
-//       const response = await axios.get('categories/', {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//         },
-//       });
-//       setCategory(response.data);
-//     } catch (err) {
-//       console.log(err);
-//     }
-//   };
-
-//   // const handleSearch = async (keyword) => {
-//   //   try {
-//   //     setIsLoaded(false);
-//   //     const response = await axios.get(`products/get-product-filter?${keyword}`, {
-//   //       headers: {
-//   //         Authorization: `Bearer ${token}`,
-//   //       },
-//   //     });
-//   //     setProductData(response.data.dataProduct);
-//   //     setIsLoaded(true);
-//   //   } catch (err) {
-//   //     console.log(err);
-//   //     setIsLoaded(false);
-//   //   }
-//   // };
-
-//   useEffect(() => {
-//     // getCategory();
-//   }, []);
-
-//   const formik = useFormik({
-//     initialValues: {
-//       name: '',
-//       category: '',
-//       sort_alphabetical: 'ASC',
-//       sort_price: 'ASC',
-//     },
-//     onSubmit: (values, action) => {
-//       console.log(values);
-//       const params = new URLSearchParams();
-//       if (values.name !== '') {
-//         params.append('name', values.name);
-//       }
-//       if (values.category !== '') {
-//         params.append('category', values.category);
-//       }
-
-//       if (orderBy === 'ByName') {
-//         params.append('sort_alphabetical', values.sort_alphabetical);
-//         params.delete('sort_price');
-//       }
-
-//       if (orderBy === 'ByPrice') {
-//         params.append('sort_price', values.sort_price);
-//         params.delete('sort_alphabetical');
-//       }
-
-//       let queryString = params.toString();
-//       queryString = queryString.replace(/\+/g, '%');
-//       // handleSearch(queryString);
-//       // action.resetForm();
-//     },
-//   });
-//   return (
-//     <form onSubmit={formik.handleSubmit}>
-//       <Stack w={['70vw', '50vw']} direction={['column', 'row']} spacing={5}>
-//         <Input
-//           rounded={'full'}
-//           name="name"
-//           type="text"
-//           placeholder="Search by name"
-//           value={formik.values.name}
-//           onChange={formik.handleChange}
-//           autoComplete="new"
-//           mb={4}
-//           focusBorderColor="#3C6255"
-//           _hover={{}}
-//           border={'1px'}
-//         />
-//         <Select
-//           rounded={'full'}
-//           border={'1px'}
-//           name="category"
-//           value={formik.setFieldValue.category}
-//           onChange={(e) => {
-//             formik.setFieldValue('category', parseInt(e.target.value));
-//           }}
-//           focusBorderColor="#3C6255"
-//           _hover={{}}
-//           defaultValue={''}
-//         >
-//           <option value="" disabled hidden>
-//             Select category
-//           </option>
-//           {category.map((item, index) => (
-//             <option key={index} value={item.id}>
-//               {item.name}
-//             </option>
-//           ))}
-//         </Select>
-//         <Select
-//           rounded={'full'}
-//           border={'1px'}
-//           onChange={(e) => {
-//             setOrderBy(e.target.value);
-//           }}
-//           value={orderBy}
-//           focusBorderColor="#3C6255"
-//           _hover={{}}
-//         >
-//           <option value={'ByName'}>Sort by name</option>
-//           <option value={'ByPrice'}>Sort by price</option>
-//         </Select>
-//         {orderBy === 'ByName' ? (
-//           <>
-//             <Select
-//               rounded={'full'}
-//               name="sort_alphabetical"
-//               value={formik.values.sort_alphabetical}
-//               onChange={(e) => {
-//                 formik.setFieldValue('sort_alphabetical', e.target.value);
-//               }}
-//               defaultValue={''}
-//               focusBorderColor="#3C6255"
-//               _hover={{}}
-//               border={'1px'}
-//             >
-//               <option value="ASC">A-Z</option>
-//               <option value="DESC">Z-A</option>
-//             </Select>
-//           </>
-//         ) : (
-//           <>
-//             <Select
-//               rounded={'full'}
-//               name="sort_price"
-//               value={formik.values.sort_price}
-//               onChange={(e) => {
-//                 formik.setFieldValue('sort_price', e.target.value);
-//               }}
-//               defaultValue={''}
-//               focusBorderColor="#3C6255"
-//               _hover={{}}
-//               border={'1px'}
-//             >
-//               <option value="ASC">Price: Low to High</option>
-//               <option value="DESC">Price: High to Low</option>
-//             </Select>
-//           </>
-//         )}
-//         <Button rounded={'full'} type="submit" bgColor={'#3C6255'} _hover={{ bg: '#61876E' }} color={'white'}>
-//           {' '}
-//           <Search2Icon />
-//         </Button>
-//       </Stack>
-//     </form>
-//   );
-// }

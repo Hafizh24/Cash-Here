@@ -13,16 +13,17 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import axios from '../../axios';
+import { useSelector } from 'react-redux';
 
-export default function ModalDelete({ isOpen, onClose, clickedData, getCashierData }) {
+export default function ModalDeleteCashier({ isOpen, onClose, clickedData, fetchCashier }) {
   const toast = useToast();
+  const token = useSelector((state) => state.user.token);
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`users/${id}`);
-      //   await axios.delete(`users/delete-cashier/${id}`, {
-      //     headers: { Authorization: `Bearer ${token}` },
-      //   });
+      await axios.delete(`users/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       toast({
         title: 'Success',
@@ -32,12 +33,12 @@ export default function ModalDelete({ isOpen, onClose, clickedData, getCashierDa
         position: 'top',
       });
 
-      getCashierData();
+      fetchCashier();
+      onClose();
     } catch (err) {
-      console.log(err);
       toast({
         title: 'Error',
-        description: "Selected cashier can't be deleted",
+        description: err?.response?.data?.message || 'Failed to delete cashier',
         status: 'error',
         duration: 3000,
         position: 'top',
@@ -62,14 +63,7 @@ export default function ModalDelete({ isOpen, onClose, clickedData, getCashierDa
           <Button colorScheme="blue" mr={3} onClick={onClose}>
             Cancel
           </Button>
-          <Button
-            variant="ghost"
-            colorScheme="red"
-            onClick={() => {
-              handleDelete(clickedData?.id);
-              onClose();
-            }}
-          >
+          <Button variant="ghost" colorScheme="red" onClick={() => handleDelete(clickedData?.id)}>
             Delete
           </Button>
         </ModalFooter>

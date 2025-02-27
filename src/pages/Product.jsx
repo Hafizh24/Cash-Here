@@ -1,43 +1,44 @@
-/* eslint-disable no-unused-vars */
-import { Flex, Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { Flex, Tab, TabList, TabPanel, TabPanels, Tabs, useToast } from '@chakra-ui/react';
+import { useCallback, useEffect, useState } from 'react';
 import SidebarWithHeader from '../components/SidebarWithHeader';
-// import SeeAllProducts from './subcomponents/seeAllProducts';
-// import AddProduct from './subcomponents/addProduct';
 import axios from '../axios';
 import Category from './Category';
 import ListProducts from '../components/product/ListProduct';
 import AddProduct from '../components/product/AddProduct';
+import { useSelector } from 'react-redux';
 
 export default function Product() {
-  const token = localStorage.getItem('token');
-  const [productData, setProductData] = useState([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [filteredProduct, setFilteredProduct] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const token = useSelector((state) => state.user.token);
+  const toast = useToast();
 
-  const fetchAPI = async () => {
+  const fetchProducts = useCallback(async () => {
+    setIsLoading(true);
+
     try {
-      setIsLoaded(false);
-      // const response = await axios.get('products/get-product', {
-      //   headers: { Authorization: `Bearer ${token}` },
-      // });
+      const response = await axios.get('products', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      const response = await axios.get('products');
-
-      setProductData(response.data.data);
-      setIsLoaded(true);
+      setProducts(response.data.data);
+      setFilteredProduct(response.data.data);
     } catch (err) {
       console.log(err);
-      setIsLoaded(false);
+      toast({ title: 'Error', description: `Something's wrong`, status: 'error', duration: 4000, position: 'top' });
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [token, toast]);
 
   useEffect(() => {
-    fetchAPI();
-  }, []);
+    fetchProducts();
+  }, [fetchProducts]);
 
   return (
     <>
-      <SidebarWithHeader></SidebarWithHeader>
+      <SidebarWithHeader />
       <Flex minH={'100vh'} pt={5} justify={'center'} pl={[null, '14rem']} bgColor={'#f0f0ec'}>
         <Tabs variant="soft-rounded">
           <TabList justifyContent={'center'}>
@@ -53,18 +54,19 @@ export default function Product() {
           </TabList>
           <TabPanels>
             <TabPanel>
-              <AddProduct getProducts={fetchAPI} />
+              <AddProduct fetchProducts={fetchProducts} />
             </TabPanel>
             <TabPanel>
               <Category />
             </TabPanel>
             <TabPanel>
               <ListProducts
-                productData={productData}
-                setProductData={setProductData}
-                setIsLoaded={setIsLoaded}
-                getProducts={fetchAPI}
-                isLoaded={isLoaded}
+                setFilteredProduct={setFilteredProduct}
+                filteredProduct={filteredProduct}
+                products={products}
+                fetchProducts={fetchProducts}
+                isLoading={isLoading}
+                setIsLoading={setIsLoading}
               />
             </TabPanel>
           </TabPanels>

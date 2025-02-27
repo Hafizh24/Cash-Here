@@ -36,7 +36,7 @@ const LinkItems = [
   { name: 'Sales Report', icon: GoGraph, route: '/sales-report' },
 ];
 
-const SidebarContent = ({ user, onClose, ...rest }) => {
+const SidebarContent = ({ user, onClose }) => {
   return (
     <Box
       transition="3s ease"
@@ -46,32 +46,27 @@ const SidebarContent = ({ user, onClose, ...rest }) => {
       w={{ base: 'full', md: 60 }}
       pos="fixed"
       h="full"
-      {...rest}
     >
       <Flex h="20" alignItems="center" mx="8" justifyContent="space-between">
         <Image src={logo} alt={'logo'} pt={'10px'} h={'50px'} w={'100px'} />
         <CloseButton display={{ base: 'flex', md: 'none' }} onClick={onClose} />
       </Flex>
-      {user?.is_admin === true ? (
-        <>
-          {LinkItems.map((link, index) => (
+
+      {LinkItems.map(
+        (link, index) =>
+          (user?.is_admin || link.cashier) && (
             <Link to={link.route} key={index}>
               <NavItem key={link.name} icon={link.icon}>
                 {link.name}
               </NavItem>
             </Link>
-          ))}
-        </>
-      ) : (
-        <Link to={'/home'}>
-          <NavItem icon={FiHome}>Home</NavItem>
-        </Link>
+          ),
       )}
     </Box>
   );
 };
 
-const NavItem = ({ icon, children, ...rest }) => {
+const NavItem = ({ icon, children }) => {
   return (
     <Box style={{ textDecoration: 'none' }} _focus={{ boxShadow: 'none' }}>
       <Flex
@@ -85,7 +80,6 @@ const NavItem = ({ icon, children, ...rest }) => {
           bg: '#3C6255',
           color: 'white',
         }}
-        {...rest}
       >
         {icon && (
           <Icon
@@ -103,8 +97,9 @@ const NavItem = ({ icon, children, ...rest }) => {
   );
 };
 
-const MobileNav = ({ onOpen, user, onOpening, handleLogout, ...rest }) => {
-  const total = useSelector((state) => state.cart.total);
+const MobileNav = ({ onOpen, user, onOpening, handleLogout }) => {
+  const items = useSelector((state) => state.cart.items);
+
   return (
     <Flex
       ml={{ base: 0, md: 60 }}
@@ -115,7 +110,6 @@ const MobileNav = ({ onOpen, user, onOpening, handleLogout, ...rest }) => {
       borderBottomWidth="1px"
       borderBottomColor={useColorModeValue('gray.200', 'gray.700')}
       justifyContent={{ base: 'space-between', md: 'flex-end' }}
-      {...rest}
     >
       <IconButton
         display={{ base: 'flex', md: 'none' }}
@@ -130,72 +124,55 @@ const MobileNav = ({ onOpen, user, onOpening, handleLogout, ...rest }) => {
         fontSize="2xl"
         fontFamily="monospace"
         fontWeight="bold"
-        color={'white'}
+        color="white"
       >
         CashHere
       </Text>
 
       <HStack spacing={{ base: '0', md: '6' }}>
-        {user?.is_admin === false ? (
-          <Stack
-            as={'button'}
-            direction={'row'}
-            spacing={'0px'}
-            onClick={onOpening}
-            _hover={{ bg: 'second', py: '8px' }}
-          >
-            <FiShoppingCart color="white" fontSize={'23px'} />
-            {total > 0 ? (
+        {!user?.is_admin && (
+          <Stack as="button" direction="row" spacing="0" onClick={onOpening} _hover={{ bg: 'second', py: '8px' }}>
+            <FiShoppingCart color="white" fontSize="23px" />
+            {items.length > 0 && (
               <Text
-                position={'relative'}
+                position="relative"
                 top={-2}
-                color={'white'}
-                bgColor={'red'}
+                color="white"
+                bgColor="red"
                 fontSize={['11px']}
-                w={'15px'}
-                h={'15px'}
-                borderRadius={'100%'}
+                w="15px"
+                h="15px"
+                borderRadius="100%"
               >
-                {total}
+                {items.length}
               </Text>
-            ) : (
-              ''
             )}
           </Stack>
-        ) : (
-          ''
         )}
-        <Flex alignItems={'center'}>
-          <Menu>
-            <MenuButton py={2} transition="all 0.3s" _focus={{ boxShadow: 'none' }}>
-              <HStack>
-                <Avatar size={'sm'} name={user?.username} bgColor={'white'} color={'black'} border={'1px'} />
-                <VStack display={{ base: 'none', md: 'flex' }} alignItems="flex-start" spacing="1px" ml="2">
-                  <Text fontSize="sm" color={'white'}>
-                    {user?.username}
-                  </Text>
-                  {/* <Text fontSize="xs" color="gray.600">
-                    {user.username}
-                  </Text> */}
-                </VStack>
-                <Box display={{ base: 'none', md: 'flex' }}>
-                  <FiChevronDown color="white" />
-                </Box>
-              </HStack>
-            </MenuButton>
-            <MenuList
-              bg={useColorModeValue('white', 'gray.900')}
-              borderColor={useColorModeValue('gray.200', 'gray.700')}
-            >
-              <Link to={'/profile'}>
-                <MenuItem>Profile</MenuItem>
-              </Link>
-              <MenuItem>Settings</MenuItem>
-              <MenuDivider />
-              <MenuItem onClick={handleLogout}>Sign out</MenuItem>
-            </MenuList>
-          </Menu>
-        </Flex>
+
+        <Menu>
+          <MenuButton py={2} transition="all 0.3s" _focus={{ boxShadow: 'none' }}>
+            <HStack>
+              <Avatar size={'sm'} name={user?.username} bgColor="white" color="black" border="1px" />
+              <VStack display={{ base: 'none', md: 'flex' }} alignItems="flex-start" spacing="1px" ml="2">
+                <Text fontSize="sm" color="white">
+                  {user?.username}
+                </Text>
+              </VStack>
+              <Box display={{ base: 'none', md: 'flex' }}>
+                <FiChevronDown color="white" />
+              </Box>
+            </HStack>
+          </MenuButton>
+          <MenuList bg={useColorModeValue('white', 'gray.900')} borderColor={useColorModeValue('gray.200', 'gray.700')}>
+            <Link to={'/profile'}>
+              <MenuItem>Profile</MenuItem>
+            </Link>
+            <MenuItem>Settings</MenuItem>
+            <MenuDivider />
+            <MenuItem onClick={handleLogout}>Sign out</MenuItem>
+          </MenuList>
+        </Menu>
       </HStack>
     </Flex>
   );
@@ -210,12 +187,11 @@ const SidebarWithHeader = ({ onOpening }) => {
   const handleLogout = () => {
     dispatch(logout());
     navigate('/');
-    // window.location.reload();
   };
 
   return (
     <Box bg={useColorModeValue('gray.100', 'gray.900')}>
-      <SidebarContent onClose={() => onClose} display={{ base: 'none', md: 'block' }} user={user} />
+      <SidebarContent onClose={onClose} display={{ base: 'none', md: 'block' }} user={user} />
       <Drawer
         isOpen={isOpen}
         placement="left"
@@ -225,10 +201,9 @@ const SidebarWithHeader = ({ onOpening }) => {
         size="full"
       >
         <DrawerContent>
-          <SidebarContent onClose={onClose} />
+          <SidebarContent onClose={onClose} user={user} />
         </DrawerContent>
       </Drawer>
-      {/* mobilenav */}
       <MobileNav user={user} onOpening={onOpening} onOpen={onOpen} handleLogout={handleLogout} />
     </Box>
   );

@@ -14,26 +14,28 @@ import {
   Input,
 } from '@chakra-ui/react';
 import { useFormik } from 'formik';
-import { useState } from 'react';
 import axios from '../../axios';
+import { useSelector } from 'react-redux';
 
-function ModalUpdateCategory({ isOpenUpdate, onCloseUpdate, data, fetchAPI, clickedData }) {
+export default function ModalUpdateCategory({
+  isOpen,
+  onClose,
+  fetchCategories,
+  clickedData,
+  isLoading,
+  setIsLoading,
+}) {
+  const token = useSelector((state) => state.user.token);
   const toast = useToast();
-  //   const token = localStorage.getItem('token');
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (data) => {
+  const handleSubmit = async (values) => {
+    setIsLoading(true);
     try {
-      setLoading(true);
-      //   await instance.patch(`categories/${clickedData?.id}`, data, {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   });
-      await axios.patch(`categories/${clickedData?.id}`, data);
-
-      setLoading(false);
-      fetchAPI();
+      await axios.patch(`categories/${clickedData?.id}`, values, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       toast({
         title: 'Success',
         description: `Category has been updated`,
@@ -41,27 +43,29 @@ function ModalUpdateCategory({ isOpenUpdate, onCloseUpdate, data, fetchAPI, clic
         duration: 4000,
         position: 'top',
       });
-      onCloseUpdate();
+
+      fetchCategories();
+      onClose();
     } catch (err) {
-      console.log(err.response?.data);
       toast({
         title: 'Error',
-        description: `Something's wrong`,
+        description: err.response?.data?.message || 'Something went wrong. Please try again.',
         status: 'error',
         duration: 4000,
         position: 'top',
       });
-      setLoading(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleCancel = () => {
-    onCloseUpdate();
+    onClose();
   };
 
   const formik = useFormik({
     initialValues: {
-      name: '',
+      name: clickedData.name,
     },
     onSubmit: (values, action) => {
       handleSubmit(values);
@@ -70,50 +74,45 @@ function ModalUpdateCategory({ isOpenUpdate, onCloseUpdate, data, fetchAPI, clic
   });
 
   return (
-    <>
-      <Modal isOpen={isOpenUpdate} onClose={onCloseUpdate} isCentered>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>{data?.name}</ModalHeader>
-          <ModalCloseButton />
-          <form onSubmit={formik.handleSubmit}>
-            <ModalBody pb={8}>
-              <FormControl mt={3}>
-                <FormLabel>Category Name</FormLabel>
-                <Input
-                  name="name"
-                  type="text"
-                  value={formik.values.name}
-                  onChange={formik.handleChange}
-                  autoComplete="new"
-                  border={'1px'}
-                  placeholder={data?.name}
-                ></Input>
-              </FormControl>
-            </ModalBody>
-            <ModalFooter>
-              <Button
-                type="submit"
-                isLoading={loading}
-                loadingText="Updating"
-                bg={'#3C6255'}
-                color={'white'}
-                colorScheme="blue"
-                mr={3}
-                _hover={{ bg: '#61876E' }}
-                rounded={'full'}
-              >
-                Update
-              </Button>
-              <Button onClick={handleCancel} rounded={'full'}>
-                Cancel
-              </Button>
-            </ModalFooter>
-          </form>
-        </ModalContent>
-      </Modal>
-    </>
+    <Modal isOpen={isOpen} onClose={onClose} isCentered>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Update Category</ModalHeader>
+        <ModalCloseButton />
+        <form onSubmit={formik.handleSubmit}>
+          <ModalBody pb={8}>
+            <FormControl mt={3}>
+              <FormLabel>Category Name</FormLabel>
+              <Input
+                name="name"
+                type="text"
+                value={formik.values.name}
+                onChange={formik.handleChange}
+                defaultValue={clickedData.name}
+                border={'1px'}
+              />
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              loadingText="Updating..."
+              bg={'#3C6255'}
+              color={'white'}
+              colorScheme="blue"
+              mr={3}
+              _hover={{ bg: '#61876E' }}
+              rounded={'full'}
+            >
+              Update
+            </Button>
+            <Button onClick={handleCancel} rounded={'full'}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </form>
+      </ModalContent>
+    </Modal>
   );
 }
-
-export default ModalUpdateCategory;

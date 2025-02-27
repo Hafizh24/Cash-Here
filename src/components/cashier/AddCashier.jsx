@@ -13,50 +13,60 @@ import {
 } from '@chakra-ui/react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import axios from '../../axios';
+import { useSelector } from 'react-redux';
 
-export default function AddCashier({ getCashierData }) {
+export default function AddCashier({ fetchCashier }) {
   const toast = useToast();
-  //   const token = localStorage.getItem('token');
-  const [loading, setLoading] = useState(false);
+  const token = useSelector((state) => state.user.token);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (data) => {
-    try {
-      setLoading(true);
-      //   console.log(data);
+  const handleSubmit = useCallback(
+    async (data, resetForm) => {
+      setIsLoading(true);
 
-      await axios.post('users', data);
-      //   await instance.post('users/add-user', data, {
-      //     headers: { Authorization: `Bearer ${token}` },
-      //   }); //sending data to database
-      toast({
-        title: 'Success',
-        description: `Cashier with username : ${data.username} has been created`,
-        status: 'success',
-        duration: 3000,
-        position: 'top',
-      });
+      try {
+        await axios.post('users', data, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      getCashierData();
+        toast({
+          title: 'Success',
+          description: `Cashier with username : ${data.username} has been created`,
+          status: 'success',
+          duration: 3000,
+          position: 'top',
+        });
 
-      setLoading(false);
-    } catch (err) {
-      console.log(err.response.data.message);
-
-      //   console.log(err.response.data.message);
-
-      setLoading(false);
-
-      toast({
-        title: 'Error',
-        description: `${data.username} already exist`,
-        status: 'error',
-        duration: 3000,
-        position: 'top',
-      });
-    }
-  };
+        fetchCashier();
+        resetForm();
+      } catch (err) {
+        if (err.response.status === 422) {
+          toast({
+            title: 'Error',
+            description: `${data.username} already exist`,
+            status: 'error',
+            duration: 3000,
+            position: 'top',
+          });
+        } else {
+          toast({
+            title: 'Error',
+            description: err.response.data.message || 'Something went wrong',
+            status: 'error',
+            duration: 3000,
+            position: 'top',
+          });
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [fetchCashier, toast, token],
+  );
 
   const RegisterEventSchema = Yup.object().shape({
     username: Yup.string().required("Username can't be empty"),
@@ -71,9 +81,8 @@ export default function AddCashier({ getCashierData }) {
       password: '',
     },
     validationSchema: RegisterEventSchema,
-    onSubmit: (values, action) => {
-      handleSubmit(values);
-      action.resetForm();
+    onSubmit: (values, { resetForm }) => {
+      handleSubmit(values, resetForm);
     },
   });
   return (
@@ -96,11 +105,11 @@ export default function AddCashier({ getCashierData }) {
                 _focus={{ backgroundColor: '#3C6255', color: 'white' }}
                 error={formik.touched.username && Boolean(formik.errors.username)}
               />
-              {formik.touched.username && formik.errors.username ? (
+              {formik.touched.username && formik.errors.username && (
                 <Text mt={2} style={{ color: 'red' }}>
                   {formik.errors.username}
                 </Text>
-              ) : null}
+              )}
             </FormControl>
             <FormControl>
               <FormLabel>Email address</FormLabel>
@@ -114,11 +123,11 @@ export default function AddCashier({ getCashierData }) {
                 _focus={{ backgroundColor: '#3C6255', color: 'white' }}
                 error={formik.touched.email && Boolean(formik.errors.email)}
               />
-              {formik.touched.email && formik.errors.email ? (
+              {formik.touched.email && formik.errors.email && (
                 <Text mt={2} style={{ color: 'red' }}>
                   {formik.errors.email}
                 </Text>
-              ) : null}
+              )}
             </FormControl>
             <FormControl>
               <FormLabel>Password</FormLabel>
@@ -132,16 +141,16 @@ export default function AddCashier({ getCashierData }) {
                 _focus={{ backgroundColor: '#3C6255', color: 'white' }}
                 error={formik.touched.password && Boolean(formik.errors.password)}
               />
-              {formik.touched.password && formik.errors.password ? (
+              {formik.touched.password && formik.errors.password && (
                 <Text mt={2} style={{ color: 'red' }}>
                   {formik.errors.password}
                 </Text>
-              ) : null}
+              )}
             </FormControl>
             <Stack>
               <Button
-                isLoading={loading}
-                loadingText={'loading'}
+                isLoading={isLoading}
+                loadingText={'Creating...'}
                 type="submit"
                 bg={'#3C6255'}
                 color={'white'}

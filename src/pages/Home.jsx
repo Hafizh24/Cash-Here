@@ -1,52 +1,51 @@
-import { Flex, Heading, SimpleGrid, Skeleton, useDisclosure } from '@chakra-ui/react';
-import React, { useEffect, useState } from 'react';
+import { Flex, Heading, SimpleGrid, Skeleton, Spinner, useDisclosure } from '@chakra-ui/react';
+import React, { useCallback, useEffect, useState } from 'react';
 import axios from '../axios';
 import Filter from '../components/Filter';
 import Pagination from '../components/Pagination';
 import Cart from '../components/Cart';
 import SidebarWithHeader from '../components/SidebarWithHeader';
 import Card from '../components/Card';
+import { useSelector } from 'react-redux';
 
 export default function Home() {
-  const [apiProduct, setApiProduct] = useState([]);
+  const [products, setProducts] = useState([]);
   const [filteredProduct, setFilteredProduct] = useState([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [postsPerPage] = useState(8);
+  const postsPerPage = 8;
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  // const token = localStorage.getItem('token');
+  const token = useSelector((state) => state.user.token);
 
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
   const currentPosts = filteredProduct.slice(indexOfFirstPost, indexOfLastPost);
 
-  const getProducts = async () => {
+  const fetchProducts = useCallback(async () => {
+    setIsLoading(true);
+
     try {
-      setIsLoaded(false);
-      // const response = await axios.get('products/get-product', {
-      //   headers: { Authorization: `Bearer ${token}` },
-      // });
+      const response = await axios.get('products', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      const response = await axios.get('products');
-
-      setApiProduct(response.data.data);
+      setProducts(response.data.data);
       setFilteredProduct(response.data.data);
-      setIsLoaded(true);
     } catch (err) {
       console.log(err.response.data.message);
-      setIsLoaded(false);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    getProducts();
-  }, []);
+    fetchProducts();
+  }, [fetchProducts]);
 
   return (
     <>
-      <SidebarWithHeader onOpening={onOpen}></SidebarWithHeader>
+      <SidebarWithHeader onOpening={onOpen} />
       <Flex
         pl={[null, '14rem']}
         bgColor={'#f0f0ec'}
@@ -57,18 +56,20 @@ export default function Home() {
         gap={5}
       >
         <Filter
-          setIsLoaded={setIsLoaded}
-          apiProduct={apiProduct}
+          setIsLoaded={setIsLoading}
+          products={products}
           setFilteredProduct={setFilteredProduct}
           setCurrentPage={setCurrentPage}
         />
+        {isLoading && <Spinner mt={'40vh'} mb={'35vh'} size={'xl'} />}
+
         {currentPosts.length > 0 ? (
           <>
             <SimpleGrid columns={[1, null, 4]} spacing={8} mb={55}>
               {currentPosts?.map((item) => (
                 <React.Fragment key={item.id}>
-                  <Skeleton isLoaded={isLoaded} fadeDuration={1}>
-                    <Card productData={item} getProducts={getProducts} />
+                  <Skeleton isLoaded={!isLoading} fadeDuration={1}>
+                    <Card products={item} fetchProducts={fetchProducts} />
                   </Skeleton>
                 </React.Fragment>
               ))}
@@ -79,19 +80,14 @@ export default function Home() {
               setCurrentPage={setCurrentPage}
               currentPage={currentPage}
             />
-            <Cart onClose={onClose} isOpen={isOpen} data={apiProduct} getProducts={getProducts} />
+            <Cart onClose={onClose} isOpen={isOpen} data={products} />
           </>
         ) : (
-          <>
-            <Heading size={'xl'} mt={'40vh'} mb={'35vh'} height={'max-content'}>
-              Data is empty
-            </Heading>
-          </>
+          <Heading size={'xl'} mt={'40vh'} mb={'35vh'} height={'max-content'}>
+            Data is empty
+          </Heading>
         )}
       </Flex>
-      {/* <Heading size={'xl'} mt={'40vh'} mb={'43vh'}>
-          Data is empty
-        </Heading> */}
     </>
   );
 }

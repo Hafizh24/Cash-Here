@@ -1,46 +1,34 @@
 /* eslint-disable react/prop-types */
+import { useRef } from 'react';
+import { useDispatch } from 'react-redux';
+import { clearCart } from '../../redux/cartSlice';
 import {
   Button,
+  HStack,
   Modal,
   ModalBody,
   ModalContent,
+  ModalFooter,
   ModalHeader,
   ModalOverlay,
-  ModalFooter,
   Stack,
   Text,
-  HStack,
 } from '@chakra-ui/react';
-import { useRef } from 'react';
-import { useDispatch } from 'react-redux';
-import ReactToPrint from 'react-to-print';
-import { clearCart } from '../../redux/cartSlice';
+import { formatMoney } from '../../lib/utils';
 
-export default function ModalReceipt({
-  products,
-  carts,
-  change,
-  total,
-  onReceiptModalClose,
-  isReceiptModalOpen,
-  setAmount,
-  getProducts,
-  onClose,
-}) {
+export default function ModalReceipt({ carts, products, total, change, onClose, isOpen, setAmount }) {
   const dispatch = useDispatch();
   const ref = useRef();
 
   const handleClose = () => {
-    onReceiptModalClose();
+    onClose();
     dispatch(clearCart());
     setAmount('');
   };
 
-  console.log(carts);
-
   return (
     <>
-      <Modal onClose={onReceiptModalClose} isOpen={isReceiptModalOpen} isCentered>
+      <Modal isOpen={isOpen} isCentered>
         <ModalOverlay />
         <ModalContent>
           <Stack ref={ref}>
@@ -53,13 +41,7 @@ export default function ModalReceipt({
                     <HStack key={item.id} justifyContent={'space-between'} spacing={1}>
                       <Text>{product?.name}</Text>
                       <Text>{item.quantity}x</Text>
-                      <Text>
-                        {product?.price.toLocaleString('id-ID', {
-                          style: 'currency',
-                          currency: 'IDR',
-                          minimumFractionDigits: 0,
-                        })}
-                      </Text>
+                      <Text>{formatMoney(product?.price)}</Text>
                     </HStack>
                   );
                 })}
@@ -67,23 +49,11 @@ export default function ModalReceipt({
               <Stack spacing={1} borderTopWidth={'1px'}>
                 <HStack justifyContent={'space-between'} mt={8}>
                   <Text>Total Price</Text>
-                  <Text>
-                    {total.toLocaleString('id-ID', {
-                      style: 'currency',
-                      currency: 'IDR',
-                      minimumFractionDigits: 0,
-                    })}
-                  </Text>
+                  <Text>{formatMoney(total)}</Text>
                 </HStack>
                 <HStack justifyContent={'space-between'}>
                   <Text>Change </Text>
-                  <Text>
-                    {change.toLocaleString('id-ID', {
-                      style: 'currency',
-                      currency: 'IDR',
-                      minimumFractionDigits: 0,
-                    })}
-                  </Text>
+                  <Text>{formatMoney(change)}</Text>
                 </HStack>
               </Stack>
               <Stack borderTopWidth={'1px'} mt={4} textAlign={'center'}>
@@ -95,7 +65,7 @@ export default function ModalReceipt({
           </Stack>
           <ModalFooter>
             <HStack direction={'row'} spacing={8} mt={4} mb={2} justifyContent={'center'} w={'full'}>
-              <ReactToPrint
+              {/* <ReactToPrint
                 bodyClass="print-agreement"
                 content={() => ref.current}
                 trigger={() => (
@@ -103,7 +73,7 @@ export default function ModalReceipt({
                     Print
                   </Button>
                 )}
-              />
+              /> */}
               <Button
                 bgColor={'navy'}
                 color="white"

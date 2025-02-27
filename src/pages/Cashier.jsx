@@ -1,37 +1,43 @@
-import { Flex, Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react';
-// import AddCashier from './subcomponents/addCashier';
-// import UpdateCashier from './subcomponents/updateCashier';
-import { useEffect, useState } from 'react';
-import SidebarWithHeader from '../components/SidebarWithHeader';
+import { Flex, Tab, TabList, TabPanel, TabPanels, Tabs, useToast } from '@chakra-ui/react';
+import { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import axios from '../axios';
+
 import AddCashier from '../components/cashier/AddCashier';
-import UpdateCashier from '../components/cashier/UpdateCashier';
+import SidebarWithHeader from '../components/SidebarWithHeader';
+import ListCashier from '../components/cashier/ListCashier';
 
 export default function Cashier() {
-  const [cashierData, setCashierData] = useState([]);
-  //   const token = localStorage.getItem('token');
+  const [cashiers, setCashiers] = useState([]);
+  const token = useSelector((state) => state.user.token);
+  const toast = useToast();
 
-  // console.log(cashierData);
-
-  const getCashierData = async () => {
+  const fetchCashier = useCallback(async () => {
     try {
-      //   const response = await axios.get('users/get-user', {
-      //     headers: { Authorization: `Bearer ${token}` },
-      //   });
-      const response = await axios.get('users');
-      setCashierData(response.data.data);
+      const response = await axios.get('users', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setCashiers(response.data.data);
     } catch (err) {
-      console.log(err);
+      toast({
+        title: 'Error',
+        description: err.response.data.message,
+        status: 'error',
+        duration: 3000,
+        position: 'top',
+      });
     }
-  };
+  }, [toast, token]);
 
   useEffect(() => {
-    getCashierData();
-  }, []);
+    fetchCashier();
+  }, [fetchCashier]);
 
   return (
     <>
-      <SidebarWithHeader></SidebarWithHeader>
+      <SidebarWithHeader />
       <Flex minH={'90vh'} minW={'100vw'} align={'center'} justify={'center'} pl={[null, '14rem']} bgColor={'#f0f0ec'}>
         <Tabs variant="soft-rounded">
           <TabList justifyContent={'center'}>
@@ -44,10 +50,10 @@ export default function Cashier() {
           </TabList>
           <TabPanels h={'80vh'}>
             <TabPanel>
-              <AddCashier getCashierData={getCashierData}></AddCashier>
+              <AddCashier fetchCashier={fetchCashier} />
             </TabPanel>
             <TabPanel>
-              <UpdateCashier cashierData={cashierData} getCashierData={getCashierData}></UpdateCashier>
+              <ListCashier cashiers={cashiers} fetchCashier={fetchCashier} />
             </TabPanel>
           </TabPanels>
         </Tabs>

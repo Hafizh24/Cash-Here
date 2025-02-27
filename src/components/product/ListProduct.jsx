@@ -1,17 +1,19 @@
 /* eslint-disable react/prop-types */
 import { Flex, Image, SimpleGrid, Skeleton } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Filter from '../Filter';
 import Pagination from '../Pagination';
 import Card from '../Card';
 
-export default function ListProducts({ productData, setProductData, setIsLoaded, isLoaded, getProducts }) {
+export default function ListProducts({ products, isLoading, fetchProducts, filteredProduct, setFilteredProduct }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [postsPerPage] = useState(8);
+  const postsPerPage = 8;
 
-  const indexOfLastPost = currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = productData.slice(indexOfFirstPost, indexOfLastPost);
+  const currentPost = useMemo(() => {
+    const indexOfLastPost = currentPage * postsPerPage;
+    const indexOfFirstPost = indexOfLastPost - postsPerPage;
+    return filteredProduct.slice(indexOfFirstPost, indexOfLastPost);
+  }, [filteredProduct, currentPage]);
 
   return (
     <Flex
@@ -22,20 +24,21 @@ export default function ListProducts({ productData, setProductData, setIsLoaded,
       alignItems={'center'}
       gap={5}
     >
-      <Filter setProductData={setProductData} setIsLoaded={setIsLoaded} />
-      {productData.length > 0 ? (
+      <Filter products={products} setFilteredProduct={setFilteredProduct} setCurrentPage={setCurrentPage} />
+
+      {currentPost.length > 0 ? (
         <>
           <SimpleGrid columns={[1, null, 4]} spacing={8}>
-            {currentPosts.map((item, index) => (
+            {currentPost.map((item, index) => (
               <React.Fragment key={index}>
-                <Skeleton isLoaded={isLoaded} fadeDuration={1}>
-                  <Card productData={item} getProducts={getProducts} />
+                <Skeleton isLoaded={!isLoading} fadeDuration={1}>
+                  <Card products={item} fetchProducts={fetchProducts} />
                 </Skeleton>
               </React.Fragment>
             ))}
           </SimpleGrid>
           <Pagination
-            totalPosts={productData.length}
+            totalPosts={filteredProduct.length}
             postsPerPage={postsPerPage}
             setCurrentPage={setCurrentPage}
             currentPage={currentPage}

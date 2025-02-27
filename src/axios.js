@@ -1,5 +1,7 @@
 import axios from 'axios';
 
-axios.defaults.baseURL = 'http://localhost:2000/api/';
+const baseURL = import.meta.env.VITE_API_URL;
+
+axios.defaults.baseURL = `${baseURL}api/`;
 
 export default axios;

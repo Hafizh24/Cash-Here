@@ -20,56 +20,52 @@ import {
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
 import axios from '../../axios';
+import { useSelector } from 'react-redux';
 
-function ModalUpdateProduct({ isOpenUpdate, onCloseUpdate, productData, getProducts }) {
+function ModalUpdateProduct({ isOpen, onClose, products, fetchProducts }) {
   const toast = useToast();
-  // const token = localStorage.getItem('token');
   const [category, setCategory] = useState([]);
-  const [loading, setLoading] = useState(false);
-  // const [toggle, setToggle] = useState(productData.is_active);
-  // const [toggleText, setToggleText] = useState('Set this product status');
-
-  // const handleSwitchChange = () => {
-  //   setToggle(!toggle);
-  //   setToggleText(`This product will be set to ${toggle === true ? 'inactive' : 'active'}`);
-  // };
+  const [isLoading, setIsLoading] = useState(false);
+  const token = useSelector((state) => state.user.token);
 
   const handleSubmit = async (data) => {
+    setIsLoading(true);
     try {
-      // console.log(data, 'data');
+      await axios.patch(`products/${products?.id}`, data, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      setLoading(true);
-      // await axios.patch('products/update-product', data, {
-      //   headers: { Authorization: `Bearer ${token}` },
-      // }); //sending data to database
-      await axios.patch(`products/${productData?.id}`, data);
-
-      setLoading(false);
-      getProducts();
+      fetchProducts();
       toast({ title: 'Success', description: `Data updated`, status: 'success', duration: 4000, position: 'top' });
-      onCloseUpdate();
     } catch (err) {
-      console.log(err.response.data.message);
-      toast({ title: 'Error', description: `Something's wrong`, status: 'error', duration: 4000, position: 'top' });
-      setLoading(false);
+      toast({
+        title: 'Error',
+        description: err.response.data.message || `Something's wrong`,
+        status: 'error',
+        duration: 4000,
+        position: 'top',
+      });
+    } finally {
+      setIsLoading(false);
+      onClose();
     }
   };
 
   const getCategory = async () => {
     try {
-      // const response = await instance.get('categories/', {
-      //   headers: { Authorization: `Bearer ${token}` },
-      // });
-      const response = await axios.get('categories/');
+      const response = await axios.get('categories', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setCategory(response.data.data);
     } catch (err) {
-      console.log(err);
+      toast({
+        title: 'Error',
+        description: err.response.data.message,
+        status: 'error',
+        duration: 4000,
+        position: 'top',
+      });
     }
-  };
-
-  const handleCancel = () => {
-    // setToggleText('Set this product status');
-    onCloseUpdate();
   };
 
   useEffect(() => {
@@ -78,27 +74,23 @@ function ModalUpdateProduct({ isOpenUpdate, onCloseUpdate, productData, getProdu
 
   const formik = useFormik({
     initialValues: {
-      // id: productData?.id,
-      name: productData?.name,
-      price: productData?.price,
+      name: products?.name,
+      price: products?.price,
       image: '',
-      category: productData.category_id,
-      description: productData?.description,
-      total_stock: productData?.total_stock,
-      isActive: productData.is_active,
+      category: products.category_id,
+      description: products?.description,
+      total_stock: products?.total_stock,
+      isActive: products.is_active,
     },
     onSubmit: (values, action) => {
-      console.log(values.category);
-
       const formData = new FormData();
-      // formData.append('id', values.id);
+
       formData.append('name', values.name);
       formData.append('category_id', values.category);
       formData.append('price', values.price);
       formData.append('total_stock', values.total_stock);
       formData.append('description', values.description);
       formData.append('image', values.image);
-      // values.isActive = toggle === true ? true : false;
       formData.append('is_active', values.isActive ? 1 : 0);
       handleSubmit(formData);
       action.resetForm();
@@ -106,10 +98,10 @@ function ModalUpdateProduct({ isOpenUpdate, onCloseUpdate, productData, getProdu
   });
 
   return (
-    <Modal isOpen={isOpenUpdate} onClose={onCloseUpdate} isCentered>
+    <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{productData?.name}</ModalHeader>
+        <ModalHeader>{products?.name}</ModalHeader>
         <ModalCloseButton />
         <form onSubmit={formik.handleSubmit}>
           <ModalBody pb={8}>
@@ -118,24 +110,18 @@ function ModalUpdateProduct({ isOpenUpdate, onCloseUpdate, productData, getProdu
               <Input
                 name="name"
                 type="text"
-                defaultValue={productData?.name}
                 value={formik.values.name}
                 onChange={formik.handleChange}
                 border={'1px'}
-                placeholder={productData?.name}
               ></Input>
             </FormControl>
 
             <FormControl>
               <FormLabel>Category</FormLabel>
               <Select
-                defaultValue={productData.category_id}
                 name="category"
                 textTransform={'capitalize'}
                 value={formik.values.category}
-                // onChange={(e) => {
-                //   formik.setFieldValue('category', parseInt(e.target.value));
-                // }}
                 onChange={formik.handleChange}
                 border={'1px'}
               >
@@ -152,11 +138,9 @@ function ModalUpdateProduct({ isOpenUpdate, onCloseUpdate, productData, getProdu
               <Input
                 name="price"
                 type="number"
-                defaultValue={productData?.price}
                 value={formik.values.price}
                 onChange={formik.handleChange}
                 border={'1px'}
-                placeholder={productData?.price}
               />
             </FormControl>
 
@@ -165,11 +149,9 @@ function ModalUpdateProduct({ isOpenUpdate, onCloseUpdate, productData, getProdu
               <Input
                 name="description"
                 type="text"
-                defaultValue={productData?.description}
                 value={formik.values.description}
                 onChange={formik.handleChange}
                 border={'1px'}
-                placeholder={productData?.description}
               />
             </FormControl>
 
@@ -178,11 +160,9 @@ function ModalUpdateProduct({ isOpenUpdate, onCloseUpdate, productData, getProdu
               <Input
                 name="total_stock"
                 type="number"
-                defaultValue={productData?.total_stock}
                 value={formik.values.total_stock}
                 onChange={formik.handleChange}
                 border={'1px'}
-                placeholder={productData?.total_stock}
               />
             </FormControl>
 
@@ -213,25 +193,19 @@ function ModalUpdateProduct({ isOpenUpdate, onCloseUpdate, productData, getProdu
                   name="isActive"
                   colorScheme="green"
                   size={'lg'}
-                  id="productStatus"
-                  defaultChecked={productData?.is_active}
-                  // isChecked={toggle}
-                  // onChange={() => {
-                  //   handleSwitchChange();
-                  // }}
+                  defaultChecked={products?.is_active}
                   onChange={formik.handleChange}
                 ></Switch>
-                {/* <Text>{toggleText}</Text> */}
                 <Text>Set this product status</Text>
               </HStack>
-              {/* {productData?.isActive === true? <><Button colorScheme='red'>Disable this product</Button></> : <><Button colorScheme='green'>Enable this product</Button></>} */}
             </FormControl>
           </ModalBody>
           <ModalFooter>
             <Button
               type="submit"
-              isLoading={loading}
-              loadingText="Updating"
+              disabled={isLoading}
+              isLoading={isLoading}
+              loadingText="Updating..."
               bg={'#3C6255'}
               color={'white'}
               colorScheme="blue"
@@ -241,7 +215,7 @@ function ModalUpdateProduct({ isOpenUpdate, onCloseUpdate, productData, getProdu
             >
               Update
             </Button>
-            <Button onClick={handleCancel} rounded={'full'}>
+            <Button onClick={onClose} rounded={'full'}>
               Cancel
             </Button>
           </ModalFooter>

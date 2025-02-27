@@ -12,20 +12,33 @@ import {
   Image,
 } from '@chakra-ui/react';
 import { useDispatch, useSelector } from 'react-redux';
-// import { addToCart } from '../redux/cartSlice';
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import ModalUpdateProduct from './product/ModalUpdateProduct';
 import ModalDeleteProduct from './product/ModalDeleteProduct';
 import { addToCart } from '../redux/cartSlice';
+import { formatMoney } from '../lib/utils';
 
-export default function Card({ productData, getProducts }) {
+export default function Card({ products, fetchProducts }) {
   const toast = useToast();
   const user = useSelector((state) => state.user.user);
   const dispatch = useDispatch();
-  // const token = localStorage.getItem('token');
 
-  const { isOpen: isOpenUpdate, onOpen: onOpenUpdate, onClose: onCloseUpdate } = useDisclosure();
-  const { isOpen: isOpenWarning, onOpen: onOpenWarning, onClose: onCloseWarning } = useDisclosure();
+  const updateModal = useDisclosure();
+  const deleteModal = useDisclosure();
+
+  const isAdmin = user?.is_admin;
+  const isOutOfStock = products?.total_stock === 0;
+
+  const handleAddToCart = () => {
+    dispatch(addToCart({ id: products.id, amount: products.price }));
+    toast({
+      title: 'Success',
+      description: `${products.name} has been added to cart`,
+      status: 'success',
+      duration: 1000,
+      position: 'top',
+    });
+  };
 
   return (
     <>
@@ -45,44 +58,38 @@ export default function Card({ productData, getProducts }) {
           transform: 'scale(1.05)', // Scale up to 105% when hovered
         }}
       >
-        {/* <Box overflow={'hidden'} h={{ base: '140px', md: '140px', lg: '200px' }} bg={'gray.100'} mt={-6} mx={-6} mb={6} pos={'relative'}>
-          <Image src={`http://localhost:2000/${productData.image}`} fill alt={productData?.name} />
-        </Box>{' '}
-        */}
         <Image
           boxSize={'240px'}
           mb={6}
           objectFit={'cover'}
-          src={productData?.image ? `http://localhost:2000/${productData?.image}` : 'https://fakeimg.pl/240x240'}
+          src={products?.image ? products?.image : 'https://fakeimg.pl/240x240'}
           fill
-          alt={productData?.name}
+          alt={products?.name}
         />
         <Stack>
           <Heading color={'#3C6255'} fontSize={['xs', 'lg']} fontFamily={'body'} textTransform={'capitalize'}>
-            {productData?.name}
+            {products?.name}
           </Heading>
           <Text color={'black'} fontWeight={800} fontSize={['xs', 'sm']} letterSpacing={1.1}>
-            {productData?.price.toLocaleString('id-ID', {
-              style: 'currency',
-              currency: 'IDR',
-              minimumFractionDigits: 0,
-            })}
+            {formatMoney(products?.price)}
           </Text>
-          <Text color={'black'} noOfLines={3} fontSize={['xs', 'sm']} letterSpacing={1.1}>
-            {user?.is_admin && <>{productData?.description}</>}
-          </Text>
-          <Text color={'black'} fontSize={['xs', 'sm']} letterSpacing={1.1}>
-            {user?.is_admin && <>Stock : {productData?.total_stock}</>}
-          </Text>
-          <Text color={'black'} fontSize={['xs', 'sm']} letterSpacing={1.1}>
-            {user?.is_admin && <>Status : {productData?.is_active === true ? <>Active</> : <>Inactive</>}</>}
-          </Text>
-          {user?.is_admin ? (
+          {isAdmin && (
+            <>
+              <Text color={'black'} noOfLines={3} fontSize={['xs', 'sm']} letterSpacing={1.1}>
+                {products?.description}
+              </Text>
+              <Text color={'black'} fontSize={['xs', 'sm']} letterSpacing={1.1}>
+                {products?.total_stock}
+              </Text>
+              <Text color={'black'} fontSize={['xs', 'sm']} letterSpacing={1.1}>
+                Status : {products?.is_active ? 'Active' : 'Inactive'}
+              </Text>
+            </>
+          )}
+          {isAdmin ? (
             <HStack justifyContent={'space-evenly'}>
               <Button
-                onClick={() => {
-                  onOpenUpdate();
-                }}
+                onClick={updateModal.onOpen}
                 size={['sm', 'md']}
                 bgColor={'#3C6255'}
                 _hover={{ bg: '#61876E' }}
@@ -91,13 +98,7 @@ export default function Card({ productData, getProducts }) {
               >
                 <EditIcon />
               </Button>
-              <Button
-                onClick={() => {
-                  onOpenWarning();
-                }}
-                size={['sm', 'md']}
-                colorScheme="red"
-              >
+              <Button onClick={deleteModal.onOpen} size={['sm', 'md']} colorScheme="red">
                 <DeleteIcon />
               </Button>
             </HStack>
@@ -105,23 +106,14 @@ export default function Card({ productData, getProducts }) {
             <Stack justifyContent={'center'} alignItems={'center'} mt={14}>
               <Button
                 w={48}
-                isDisabled={productData.total_stock <= 0 ? true : false}
+                isDisabled={isOutOfStock}
                 bgColor={'#3C6255'}
                 _hover={{ bgColor: '#61876E' }}
                 color={'white'}
-                onClick={() => {
-                  dispatch(addToCart({ id: productData.id, quantity: 1, amount: productData.price }));
-                  toast({
-                    title: 'Success',
-                    description: `${productData.name} has been added to cart`,
-                    status: 'success',
-                    duration: 1000,
-                    position: 'top',
-                  });
-                }}
+                onClick={handleAddToCart}
                 size={['sm', 'md']}
               >
-                {productData?.total_stock <= 0 ? 'out of stock' : 'Add to cart'}
+                {isOutOfStock ? 'out of stock' : 'Add to cart'}
               </Button>
             </Stack>
           )}
@@ -129,17 +121,17 @@ export default function Card({ productData, getProducts }) {
       </Box>
 
       <ModalUpdateProduct
-        isOpenUpdate={isOpenUpdate}
-        onCloseUpdate={onCloseUpdate}
-        productData={productData}
-        getProducts={getProducts}
+        isOpen={updateModal.isOpen}
+        onClose={updateModal.onClose}
+        products={products}
+        fetchProducts={fetchProducts}
       />
 
       <ModalDeleteProduct
-        isOpenWarning={isOpenWarning}
-        onCloseWarning={onCloseWarning}
-        productData={productData}
-        getProducts={getProducts}
+        isOpen={deleteModal.isOpen}
+        onClose={deleteModal.onClose}
+        products={products}
+        fetchProducts={fetchProducts}
       />
     </>
   );

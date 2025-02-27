@@ -9,7 +9,6 @@ import {
   Input,
   Stack,
   Text,
-  useDisclosure,
   useToast,
 } from '@chakra-ui/react';
 import { useState } from 'react';
@@ -18,6 +17,7 @@ import { useDispatch } from 'react-redux';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
 import axios from '../axios';
+
 import cashier from '../assets/inikasir.png';
 import { setToken, setUser } from '../redux/userSlice';
 
@@ -25,6 +25,15 @@ export default function LoginCashier() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const toast = useToast();
+  // const { isOpen, onOpen, onClose } = useDisclosure();
+
+  // const handleButtonClick = () => {
+  //   onOpen();
+  // };
+  const [checkedItems, setCheckedItems] = useState(false);
+  const handleCheckBoxChange = () => {
+    setCheckedItems(!checkedItems);
+  };
 
   const LoginSchema = Yup.object().shape({
     email: Yup.string().required('Email is required'),
@@ -50,7 +59,6 @@ export default function LoginCashier() {
         navigate('/home');
       }
     } catch (err) {
-      console.log(err.response.data.message);
       toast({
         title: 'Error',
         description: `${err.response.data.message}`,
@@ -67,20 +75,11 @@ export default function LoginCashier() {
       password: '',
     },
     validationSchema: LoginSchema,
-    onSubmit: (values, action) => {
+    onSubmit: (values, { resetForm }) => {
       handleSubmit(values);
-      action.resetForm();
+      resetForm();
     },
   });
-  const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const handleButtonClick = () => {
-    onOpen();
-  };
-  const [checkedItems, setCheckedItems] = useState(false);
-  const handleCheckBoxChange = () => {
-    setCheckedItems(!checkedItems);
-  };
 
   return (
     <>
@@ -106,11 +105,11 @@ export default function LoginCashier() {
                   type="email"
                   error={formik.touched.email && Boolean(formik.errors.email)}
                 />
-                {formik.touched.email && formik.errors.email ? (
+                {formik.touched.email && formik.errors.email && (
                   <Text mt={2} style={{ color: 'red' }}>
                     {formik.errors.email}
                   </Text>
-                ) : null}
+                )}
               </FormControl>
               <FormControl id="password">
                 <FormLabel>Password</FormLabel>
@@ -123,11 +122,11 @@ export default function LoginCashier() {
                   focusBorderColor="#3C6255"
                   type="password"
                 />
-                {formik.touched.password && formik.errors.password ? (
+                {formik.touched.password && formik.errors.password && (
                   <Text mt={2} style={{ color: 'red' }}>
                     {formik.errors.password}
                   </Text>
-                ) : null}
+                )}
               </FormControl>
               <Stack spacing={6}>
                 <Stack direction={{ base: 'column', sm: 'row' }} align={'start'} justify={'space-between'}>
@@ -141,7 +140,7 @@ export default function LoginCashier() {
                   >
                     Remember me
                   </Checkbox>
-                  <Button
+                  {/* <Button
                     variant={'unstyled'}
                     color={'#61876E'}
                     _hover={{ color: '#3C6255' }}
@@ -150,7 +149,7 @@ export default function LoginCashier() {
                     }}
                   >
                     Forgot password?
-                  </Button>
+                  </Button> */}
                 </Stack>
                 <Button
                   type="submit"

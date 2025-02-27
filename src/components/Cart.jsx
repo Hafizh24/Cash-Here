@@ -21,32 +21,55 @@ import {
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
-import CurrencyInput from 'react-currency-input-field';
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart, addTotal, removeFromCart, subtractQuantity } from '../redux/cartSlice';
 import { useRef, useState } from 'react';
-
-// import ModalConfirmPayment from './modalConfirmPayment';
-// import ModalReceipt from './modalReceipt';
-
 import axios from '../axios';
 import ModalConfirmPayment from './cart/ModalConfirmPayment';
 import ModalReceipt from './cart/ModalReceipt';
+import CurrencyInput from 'react-currency-input-field';
+import { formatMoney } from '../lib/utils';
+import { addToCart, decreaseQuantity, removeFromCart } from '../redux/cartSlice';
 
-const Cart = ({ data, onClose, isOpen, getProducts }) => {
+const Cart = ({ data, onClose, isOpen }) => {
   const dispatch = useDispatch();
   const firstField = useRef();
   const toast = useToast();
-  const [amount, setAmount] = useState('');
-  const { isOpen: isPaymentModalOpen, onOpen: onPaymentModalOpen, onClose: onPaymentModalClose } = useDisclosure();
-  const { isOpen: isReceiptModalOpen, onOpen: onReceiptModalOpen, onClose: onReceiptModalClose } = useDisclosure();
 
-  const carts = useSelector((state) => state.cart.data);
+  const paymentModal = useDisclosure();
+  const receiptModal = useDisclosure();
+
+  const carts = useSelector((state) => state.cart.items);
   const token = useSelector((state) => state.user.token);
-  const total = carts.reduce((total, item) => total + item.amount * item.quantity, 0);
+
+  const [amount, setAmount] = useState('');
+
+  const total = useSelector((state) => state.cart.total);
   const change = amount - total;
 
-  dispatch(addTotal(carts.reduce((total, item) => total + item.quantity, 0)));
+  const handleRemoveFromCart = (item, product) => {
+    dispatch(removeFromCart({ id: item.id }));
+    toast({
+      title: 'success',
+      description: `${product.name} has been removed from cart`,
+      status: 'success',
+      duration: 1000,
+      position: 'top',
+    });
+  };
+
+  const handleDecreaseQuantity = (item, product) => {
+    dispatch(decreaseQuantity({ id: item.id, quantity: 1 }));
+
+    if (item.quantity === 1) {
+      toast({
+        title: 'success',
+        description: `${product.name} has been removed from cart`,
+        status: 'success',
+        duration: 1000,
+        position: 'top',
+      });
+    }
+  };
 
   const handleSubmit = async () => {
     try {
@@ -60,9 +83,16 @@ const Cart = ({ data, onClose, isOpen, getProducts }) => {
         },
       );
 
-      // onReceiptModalOpen();
+      onClose();
+      receiptModal.onOpen();
     } catch (error) {
-      console.log(error.response.data.message);
+      toast({
+        title: 'Error',
+        description: `${error.response.data.message}`,
+        status: 'error',
+        duration: 3000,
+        position: 'top',
+      });
     }
   };
 
@@ -82,7 +112,7 @@ const Cart = ({ data, onClose, isOpen, getProducts }) => {
                 <Stack mb={3} key={item.id}>
                   <Card direction={'row'} overflow={'hidden'} variant={'outline'}>
                     <Image
-                      src={product?.image ? `http://localhost:2000/${product?.image}` : 'https://fakeimg.pl/240x240'}
+                      src={product?.image ? product?.image : 'https://fakeimg.pl/240x240'}
                       borderRadius="full"
                       w={'6rem'}
                       h={'6rem'}
@@ -96,25 +126,12 @@ const Cart = ({ data, onClose, isOpen, getProducts }) => {
                           {product?.name}
                         </Heading>
                         <Text fontSize={'md'} fontWeight={'900'} color={'first'}>
-                          {product?.price.toLocaleString('id-ID', {
-                            style: 'currency',
-                            currency: 'IDR',
-                            minimumFractionDigits: 0,
-                          })}
+                          {formatMoney(product?.price)}
                         </Text>
                       </Stack>
                       <Stack direction={'row'} mt={8} alignItems={'center'} justifyContent={'end'}>
                         <IconButton
-                          onClick={() => {
-                            dispatch(removeFromCart({ id: item.id }));
-                            toast({
-                              title: 'success',
-                              description: `${product.name} has been removed from cart`,
-                              status: 'success',
-                              duration: 1000,
-                              position: 'top',
-                            });
-                          }}
+                          onClick={() => handleRemoveFromCart(item, product)}
                           variant="filled"
                           size="sm"
                           // w={3}
@@ -122,28 +139,15 @@ const Cart = ({ data, onClose, isOpen, getProducts }) => {
                           icon={<DeleteIcon />}
                         />
                         <IconButton
-                          onClick={() => {
-                            if (item.quantity === 1) {
-                              dispatch(subtractQuantity({ id: item.id, quantity: 1 }));
-                              toast({
-                                title: 'success',
-                                description: `${product.name} has been removed from cart`,
-                                status: 'success',
-                                duration: 1000,
-                                position: 'top',
-                              });
-                            } else {
-                              dispatch(subtractQuantity({ id: item.id, quantity: 1 }));
-                            }
-                          }}
+                          onClick={() => handleDecreaseQuantity(item, product)}
                           variant={'outline'}
                           size="sm"
                           icon={<MinusIcon />}
                         />
                         <Text>{item.quantity}</Text>
                         <IconButton
-                          isDisabled={item.quantity >= product.total_stock ? true : false}
-                          onClick={() => dispatch(addToCart({ id: item.id, quantity: 1 }))}
+                          isDisabled={item.quantity >= product.total_stock}
+                          onClick={() => dispatch(addToCart({ id: item.id }))}
                           variant={'outline'}
                           size="sm"
                           icon={<AddIcon />}
@@ -163,7 +167,7 @@ const Cart = ({ data, onClose, isOpen, getProducts }) => {
                     Total
                   </Text>
                   <Text fontSize={'xl'} fontWeight={600}>
-                    {total.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 })}
+                    {formatMoney(total)}
                   </Text>
                 </Stack>
                 <Stack mb={'50px'}>
@@ -177,8 +181,8 @@ const Cart = ({ data, onClose, isOpen, getProducts }) => {
                 </Stack>
                 <Flex direction={'column'}>
                   <Button
-                    isDisabled={amount < total || amount === '' ? true : false}
-                    onClick={() => onPaymentModalOpen()}
+                    isDisabled={amount < total || amount === ''}
+                    onClick={() => paymentModal.onOpen()}
                     bgColor={'#3C6255'}
                     color={'white'}
                     _hover={{ bgColor: '#61876E' }}
@@ -195,21 +199,15 @@ const Cart = ({ data, onClose, isOpen, getProducts }) => {
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
-      <ModalConfirmPayment
-        isPaymentModalOpen={isPaymentModalOpen}
-        onPaymentModalClose={onPaymentModalClose}
-        handleSubmit={handleSubmit}
-      />
+      <ModalConfirmPayment isOpen={paymentModal.isOpen} onClose={paymentModal.onClose} handleSubmit={handleSubmit} />
       <ModalReceipt
-        isReceiptModalOpen={isReceiptModalOpen}
-        onReceiptModalClose={onReceiptModalClose}
         products={data}
         carts={carts}
-        change={change}
         total={total}
+        change={change}
+        onClose={receiptModal.onClose}
+        isOpen={receiptModal.isOpen}
         setAmount={setAmount}
-        getProducts={getProducts}
-        onClose={onClose}
       />
     </>
   );

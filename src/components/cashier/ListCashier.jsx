@@ -15,27 +15,19 @@ import {
   Tbody,
   Td,
 } from '@chakra-ui/react';
-
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
-// import ModalUpdate from './modalUpdate';
-import ModalDelete from './ModalDelete';
-import ModalUpdate from './ModalUpdate';
+import ModalUpdateCashier from './ModalUpdateCashier';
+import ModalDeleteCashier from './ModalDeleteCashier';
 
-export default function UpdateCashier({ cashierData, getCashierData }) {
+export default function ListCashier({ cashiers, fetchCashier }) {
   const [clickedData, setClickedData] = useState([]);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const { isOpen: isDeleteModalOpen, onOpen: onDeleteModalOpen, onClose: onDeleteModalClose } = useDisclosure();
-  //   const token = localStorage.getItem('token');
+  const updateModal = useDisclosure();
+  const deleteModal = useDisclosure();
 
-  const handleEdit = (item) => {
+  const openModal = (item, action) => {
     setClickedData(item);
-    onOpen();
-  };
-
-  const handleModalDelete = (item) => {
-    setClickedData(item);
-    onDeleteModalOpen();
+    action();
   };
 
   return (
@@ -57,9 +49,9 @@ export default function UpdateCashier({ cashierData, getCashierData }) {
               </Tr>
             </Thead>
             <Tbody>
-              {cashierData.length > 0 ? (
+              {cashiers.length > 0 ? (
                 <>
-                  {cashierData.map((item, index) => (
+                  {cashiers.map((item, index) => (
                     <Tr key={index}>
                       <Td>{item.username}</Td>
                       <Td>{item.email}</Td>
@@ -81,9 +73,7 @@ export default function UpdateCashier({ cashierData, getCashierData }) {
                         <Button
                           bgColor={'#3C6255'}
                           color={'white'}
-                          onClick={() => {
-                            handleEdit(item);
-                          }}
+                          onClick={() => openModal(item, updateModal.onOpen)}
                           ml={'8px'}
                           _hover={{ bg: '#61876E' }}
                           size={['sm', 'md']}
@@ -94,7 +84,7 @@ export default function UpdateCashier({ cashierData, getCashierData }) {
                           colorScheme="red"
                           color={'white'}
                           ml={'8px'}
-                          onClick={() => handleModalDelete(item)}
+                          onClick={() => openModal(item, deleteModal.onOpen)}
                           size={['sm', 'md']}
                         >
                           <DeleteIcon />
@@ -115,13 +105,18 @@ export default function UpdateCashier({ cashierData, getCashierData }) {
         </TableContainer>
       </Box>
 
-      <ModalUpdate isOpen={isOpen} onClose={onClose} clickedData={clickedData} getCashierData={getCashierData} />
-
-      <ModalDelete
+      <ModalUpdateCashier
+        isOpen={updateModal.isOpen}
+        onClose={updateModal.onClose}
         clickedData={clickedData}
-        getCashierData={getCashierData}
-        isOpen={isDeleteModalOpen}
-        onClose={onDeleteModalClose}
+        fetchCashier={fetchCashier}
+      />
+
+      <ModalDeleteCashier
+        clickedData={clickedData}
+        fetchCashier={fetchCashier}
+        isOpen={deleteModal.isOpen}
+        onClose={deleteModal.onClose}
       />
     </Stack>
   );

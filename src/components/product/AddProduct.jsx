@@ -2,16 +2,17 @@
 import { Box, Button, Flex, FormControl, FormLabel, Input, Select, SimpleGrid, Text, useToast } from '@chakra-ui/react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-// import CurrencyInput from 'react-currency-input-field';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import axios from '../../axios';
+import { useSelector } from 'react-redux';
 
-export default function AddProduct({ getProducts }) {
-  //   const token = localStorage.getItem('token');
-  const toast = useToast();
+export default function AddProduct({ fetchProducts }) {
   const [category, setCategory] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const fileInputRef = useRef(null);
+  const toast = useToast();
+  const token = useSelector((state) => state.user.token);
 
   const AddProductSchema = Yup.object().shape({
     name: Yup.string().required("Product name can't be empty"),
@@ -22,17 +23,50 @@ export default function AddProduct({ getProducts }) {
     image: Yup.mixed().nullable().optional(),
   });
 
-  const getCategory = async () => {
+  const getCategory = useCallback(async () => {
     try {
-      //   const response = await axios.get('categories/', {
-      //     headers: { Authorization: `Bearer ${token}` },
-      //   });
-
-      const response = await axios.get('categories/');
+      const response = await axios.get('categories', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       setCategory(response.data.data);
     } catch (err) {
-      console.log(err);
+      toast({
+        title: 'Error',
+        description: `${err.response.data.message} || failed to get category`,
+        status: 'error',
+        duration: 3000,
+        position: 'top',
+      });
+    }
+  }, [token, toast]);
+
+  const handleSubmit = async (data) => {
+    setIsLoading(true);
+
+    try {
+      await axios.post('products', data, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      toast({
+        title: 'Success',
+        description: `${data.get('name')} has been created`,
+        status: 'success',
+        duration: 3000,
+        position: 'top',
+      });
+      fetchProducts();
+    } catch (err) {
+      toast({
+        title: 'Error',
+        description: `${err.response.data.message} || failed to create product`,
+        status: 'error',
+        duration: 3000,
+        position: 'top',
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -46,7 +80,7 @@ export default function AddProduct({ getProducts }) {
       description: '',
     },
     validationSchema: AddProductSchema,
-    onSubmit: (values, action) => {
+    onSubmit: (values, { resetForm }) => {
       const formData = new FormData();
       formData.append('name', values.name);
       formData.append('category_id', values.category);
@@ -54,50 +88,16 @@ export default function AddProduct({ getProducts }) {
       formData.append('total_stock', values.total_stock);
       formData.append('description', values.description);
       formData.append('image', values.image);
-      handleSubmit(formData);
-      action.resetForm();
 
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      handleSubmit(formData);
+      resetForm();
+      fileInputRef.current && (fileInputRef.current.value = '');
     },
   });
 
-  const handleSubmit = async (data) => {
-    try {
-      setLoading(true);
-      //   await axios.post('products/add-product', data, {
-      //     headers: { Authorization: `Bearer ${token}` },
-      //   }); //sending data to database
-      await axios.post('products', data);
-
-      toast({
-        title: 'Success',
-        description: `${data.get('name')} has been created`,
-        // description: `${data?.name} has been created`,
-        status: 'success',
-        duration: 3000,
-        position: 'top',
-      });
-      getProducts();
-      setLoading(false);
-    } catch (err) {
-      console.log(err.response.data.message);
-
-      setLoading(false);
-      toast({
-        title: 'Error',
-        description: `${err.response.data.message}`,
-        status: 'error',
-        duration: 3000,
-        position: 'top',
-      });
-    }
-  };
-
   useEffect(() => {
     getCategory();
-  }, []);
+  }, [getCategory]);
 
   return (
     <>
@@ -117,11 +117,11 @@ export default function AddProduct({ getProducts }) {
                   error={formik.touched.name && Boolean(formik.errors.name)}
                   placeholder="Insert product name"
                 />
-                {formik.touched.name && formik.errors.name ? (
+                {formik.touched.name && formik.errors.name && (
                   <Text mt={2} style={{ color: 'red' }}>
                     {formik.errors.name}
                   </Text>
-                ) : null}
+                )}
               </FormControl>
             </Box>
             <Box p={7} rounded={'lg'} bgColor={'white'} shadow={'lg'}>
@@ -142,11 +142,11 @@ export default function AddProduct({ getProducts }) {
                     </option>
                   ))}
                 </Select>
-                {formik.touched.category && formik.errors.category ? (
+                {formik.touched.category && formik.errors.category && (
                   <Text mt={2} style={{ color: 'red' }}>
                     {formik.errors.category}
                   </Text>
-                ) : null}
+                )}
               </FormControl>
             </Box>
             <Box p={7} rounded={'lg'} bgColor={'white'} shadow={'lg'}>
@@ -161,11 +161,11 @@ export default function AddProduct({ getProducts }) {
                   error={formik.touched.price && Boolean(formik.errors.price)}
                   placeholder="Insert product price"
                 />
-                {formik.touched.price && formik.errors.price ? (
+                {formik.touched.price && formik.errors.price && (
                   <Text mt={2} style={{ color: 'red' }}>
                     {formik.errors.price}
                   </Text>
-                ) : null}
+                )}
               </FormControl>
             </Box>
             <Box p={7} rounded={'lg'} bgColor={'white'} shadow={'lg'}>
@@ -180,11 +180,11 @@ export default function AddProduct({ getProducts }) {
                   error={formik.touched.total_stock && Boolean(formik.errors.total_stock)}
                   placeholder="Insert product stock"
                 />
-                {formik.touched.total_stock && formik.errors.total_stock ? (
+                {formik.touched.total_stock && formik.errors.total_stock && (
                   <Text mt={2} style={{ color: 'red' }}>
                     {formik.errors.total_stock}
                   </Text>
-                ) : null}
+                )}
               </FormControl>
             </Box>
             <Box p={7} rounded={'lg'} bgColor={'white'} shadow={'lg'}>
@@ -198,11 +198,11 @@ export default function AddProduct({ getProducts }) {
                   shadow={'md'}
                   error={formik.touched.image && Boolean(formik.errors.image)}
                 />
-                {formik.touched.image && formik.errors.image ? (
+                {formik.touched.image && formik.errors.image && (
                   <Text mt={2} style={{ color: 'red' }}>
                     {formik.errors.image}
                   </Text>
-                ) : null}
+                )}
               </FormControl>
             </Box>
             <Box p={7} rounded={'lg'} bgColor={'white'} shadow={'lg'}>
@@ -217,11 +217,11 @@ export default function AddProduct({ getProducts }) {
                   placeholder="Insert product description"
                   error={formik.touched.description && Boolean(formik.errors.description)}
                 />
-                {formik.touched.description && formik.errors.description ? (
+                {formik.touched.description && formik.errors.description && (
                   <Text mt={2} style={{ color: 'red' }}>
                     {formik.errors.description}
                   </Text>
-                ) : null}
+                )}
               </FormControl>
             </Box>
           </SimpleGrid>
@@ -230,9 +230,9 @@ export default function AddProduct({ getProducts }) {
             bgColor={'#3C6255'}
             color={'white'}
             mt={10}
-            isDisabled={loading}
-            isLoading={loading}
-            loadingText={'loading'}
+            isDisabled={isLoading}
+            isLoading={isLoading}
+            loadingText={'Creating...'}
             p={5}
           >
             Create

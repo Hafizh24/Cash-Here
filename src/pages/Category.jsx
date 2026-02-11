@@ -1,22 +1,16 @@
 import { Flex, useToast } from '@chakra-ui/react';
 import { useCallback, useEffect, useState } from 'react';
-import axios from '../axios';
 import ListCategory from '../components/category/ListCategory';
 import AddCategory from '../components/category/AddCategory';
-import { useSelector } from 'react-redux';
+import { categoriesApi } from '../api/category';
 
 const Category = () => {
   const [categories, setCategories] = useState([]);
-  const token = useSelector((state) => state.user.token);
   const toast = useToast();
 
   const fetchCategories = useCallback(async () => {
     try {
-      const response = await axios.get('categories', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await categoriesApi.getAll();
 
       setCategories(response.data.data);
     } catch (err) {
@@ -28,7 +22,7 @@ const Category = () => {
         position: 'top',
       });
     }
-  }, [token, toast]);
+  }, []);
 
   useEffect(() => {
     fetchCategories();

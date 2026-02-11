@@ -13,7 +13,7 @@ import {
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from '../axios';
+import axios from '../api/client';
 
 export default function ResetPassword() {
   const params = useParams();

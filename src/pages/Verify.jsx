@@ -1,6 +1,6 @@
 import { Box, Stack, Button, Heading, Center, useColorModeValue, useToast, Spinner } from '@chakra-ui/react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from '../axios';
+import axios from '../api/client';
 import { useState } from 'react';
 
 export default function Verify() {

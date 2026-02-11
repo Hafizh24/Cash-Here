@@ -11,16 +11,18 @@ import {
   useToast,
   Image,
 } from '@chakra-ui/react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import ModalUpdateProduct from './product/ModalUpdateProduct';
 import ModalDeleteProduct from './product/ModalDeleteProduct';
 import { addToCart } from '../redux/cartSlice';
 import { formatMoney } from '../lib/utils';
+import { useAuth } from '../context/AuthContext';
 
 export default function Card({ products, fetchProducts }) {
   const toast = useToast();
-  const user = useSelector((state) => state.user.user);
+  const { user } = useAuth();
+
   const dispatch = useDispatch();
 
   const updateModal = useDisclosure();

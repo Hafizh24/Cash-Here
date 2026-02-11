@@ -12,18 +12,14 @@ import {
   Text,
   useToast,
 } from '@chakra-ui/react';
-import axios from '../../axios';
-import { useSelector } from 'react-redux';
+import { cashiersApi } from '../../api/cashier';
 
 export default function ModalDeleteCashier({ isOpen, onClose, clickedData, fetchCashier }) {
   const toast = useToast();
-  const token = useSelector((state) => state.user.token);
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`users/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await cashiersApi.delete(id);
 
       toast({
         title: 'Success',

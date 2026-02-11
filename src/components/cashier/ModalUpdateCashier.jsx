@@ -13,7 +13,7 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { useFormik } from 'formik';
-import axios from '../../axios';
+import axios from '../../api/client';
 import { useSelector } from 'react-redux';
 
 function ModalUpdateCashier({ isOpen, onClose, clickedData, fetchCashier }) {

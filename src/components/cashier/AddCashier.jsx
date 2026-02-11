@@ -14,12 +14,11 @@ import {
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useCallback, useState } from 'react';
-import axios from '../../axios';
-import { useSelector } from 'react-redux';
+import { cashiersApi } from '../../api/cashier';
 
 export default function AddCashier({ fetchCashier }) {
   const toast = useToast();
-  const token = useSelector((state) => state.user.token);
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = useCallback(
@@ -27,11 +26,7 @@ export default function AddCashier({ fetchCashier }) {
       setIsLoading(true);
 
       try {
-        await axios.post('users', data, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await cashiersApi.create(data);
 
         toast({
           title: 'Success',
@@ -65,7 +60,7 @@ export default function AddCashier({ fetchCashier }) {
         setIsLoading(false);
       }
     },
-    [fetchCashier, toast, token],
+    [fetchCashier, toast],
   );
 
   const RegisterEventSchema = Yup.object().shape({

@@ -3,16 +3,15 @@ import { Box, Button, Flex, FormControl, FormLabel, Input, Select, SimpleGrid, T
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import axios from '../../axios';
-import { useSelector } from 'react-redux';
+import { productsApi } from '../../api/products';
+import { categoriesApi } from '../../api/category';
 
 export default function AddProduct({ fetchProducts }) {
-  const [category, setCategory] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const fileInputRef = useRef(null);
   const toast = useToast();
-  const token = useSelector((state) => state.user.token);
 
   const AddProductSchema = Yup.object().shape({
     name: Yup.string().required("Product name can't be empty"),
@@ -20,16 +19,21 @@ export default function AddProduct({ fetchProducts }) {
     price: Yup.number().required("Price can't be empty").positive("Can't be negative").integer(),
     total_stock: Yup.number().required("Stock can't be empty").positive("Can't be negative").integer(),
     description: Yup.string().optional(),
-    image: Yup.mixed().nullable().optional(),
+    image: Yup.mixed()
+      .required("Image can't be empty")
+      .test('fileSize', 'File too large', (value) => {
+        return value && value.size <= 5000000; // 5MB
+      })
+      .test('fileType', 'Unsupported file format', (value) => {
+        return value && ['image/jpg', 'image/jpeg', 'image/png', 'image/webp'].includes(value.type);
+      }),
   });
 
-  const getCategory = useCallback(async () => {
+  const getCategories = useCallback(async () => {
     try {
-      const response = await axios.get('categories', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await categoriesApi.getAll();
 
-      setCategory(response.data.data);
+      setCategories(response.data.data);
     } catch (err) {
       toast({
         title: 'Error',
@@ -39,15 +43,13 @@ export default function AddProduct({ fetchProducts }) {
         position: 'top',
       });
     }
-  }, [token, toast]);
+  }, [toast]);
 
   const handleSubmit = async (data) => {
     setIsLoading(true);
 
     try {
-      await axios.post('products', data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await productsApi.create(data);
 
       toast({
         title: 'Success',
@@ -96,8 +98,8 @@ export default function AddProduct({ fetchProducts }) {
   });
 
   useEffect(() => {
-    getCategory();
-  }, [getCategory]);
+    getCategories();
+  }, [getCategories]);
 
   return (
     <>
@@ -136,9 +138,9 @@ export default function AddProduct({ fetchProducts }) {
                   error={formik.touched.category && Boolean(formik.errors.category)}
                 >
                   <option value="">Select a category</option>
-                  {category?.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
+                  {categories?.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
                     </option>
                   ))}
                 </Select>

@@ -12,7 +12,7 @@ import {
   Text,
   useToast,
 } from '@chakra-ui/react';
-import axios from '../../axios';
+import { categoriesApi } from '../../api/category';
 
 export default function ModalDeleteCategory({ isOpen, onClose, clickedData, fetchCategories, setIsLoading }) {
   const toast = useToast();
@@ -21,9 +21,10 @@ export default function ModalDeleteCategory({ isOpen, onClose, clickedData, fetc
     setIsLoading(true);
 
     try {
-      const response = await axios.patch(`categories/delete/${id}`);
+      // const response = await axios.patch(`categories/delete/${id}`);
+      const response = await categoriesApi.delete(id);
 
-      if (response.status === 200) {
+      if (response.status === 204) {
         toast({
           title: 'Success',
           description: 'Selected category has been deleted',

@@ -23,7 +23,7 @@ import {
 } from '@chakra-ui/react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRef, useState } from 'react';
-import axios from '../axios';
+import axios from '../api/client';
 import ModalConfirmPayment from './cart/ModalConfirmPayment';
 import ModalReceipt from './cart/ModalReceipt';
 import CurrencyInput from 'react-currency-input-field';

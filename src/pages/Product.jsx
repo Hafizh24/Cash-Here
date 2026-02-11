@@ -1,26 +1,23 @@
 import { Flex, Tab, TabList, TabPanel, TabPanels, Tabs, useToast } from '@chakra-ui/react';
 import { useCallback, useEffect, useState } from 'react';
 import SidebarWithHeader from '../components/SidebarWithHeader';
-import axios from '../axios';
 import Category from './Category';
 import ListProducts from '../components/product/ListProduct';
 import AddProduct from '../components/product/AddProduct';
-import { useSelector } from 'react-redux';
+import { productsApi } from '../api/products';
 
 export default function Product() {
   const [products, setProducts] = useState([]);
   const [filteredProduct, setFilteredProduct] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const token = useSelector((state) => state.user.token);
+
   const toast = useToast();
 
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.get('products', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await productsApi.getAll();
 
       setProducts(response.data.data);
       setFilteredProduct(response.data.data);
@@ -30,7 +27,7 @@ export default function Product() {
     } finally {
       setIsLoading(false);
     }
-  }, [token, toast]);
+  }, [toast]);
 
   useEffect(() => {
     fetchProducts();

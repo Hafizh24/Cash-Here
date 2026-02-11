@@ -1,24 +1,17 @@
 import { Flex, Tab, TabList, TabPanel, TabPanels, Tabs, useToast } from '@chakra-ui/react';
 import { useCallback, useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import axios from '../axios';
-
 import AddCashier from '../components/cashier/AddCashier';
 import SidebarWithHeader from '../components/SidebarWithHeader';
 import ListCashier from '../components/cashier/ListCashier';
+import { cashiersApi } from '../api/cashier';
 
 export default function Cashier() {
   const [cashiers, setCashiers] = useState([]);
-  const token = useSelector((state) => state.user.token);
   const toast = useToast();
 
   const fetchCashier = useCallback(async () => {
     try {
-      const response = await axios.get('users', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await cashiersApi.getAll();
       setCashiers(response.data.data);
     } catch (err) {
       toast({
@@ -29,7 +22,7 @@ export default function Cashier() {
         position: 'top',
       });
     }
-  }, [toast, token]);
+  }, [toast]);
 
   useEffect(() => {
     fetchCashier();

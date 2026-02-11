@@ -23,11 +23,12 @@ import {
 } from '@chakra-ui/react';
 import { FiHome, FiMenu, FiChevronDown, FiShoppingCart } from 'react-icons/fi';
 import { PiPackageDuotone, PiUserListLight } from 'react-icons/pi';
-import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { GoGraph } from 'react-icons/go';
 import logo from '../assets/cashhere.png';
-import { logout } from '../redux/userSlice';
+
+import { useAuth } from '../context/AuthContext';
 
 const LinkItems = [
   { name: 'Home', icon: FiHome, route: '/home', cashier: true },
@@ -180,13 +181,10 @@ const MobileNav = ({ onOpen, user, onOpening, handleLogout }) => {
 
 const SidebarWithHeader = ({ onOpening }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const user = useSelector((state) => state.user.user);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    dispatch(logout());
-    navigate('/');
+    logout();
   };
 
   return (

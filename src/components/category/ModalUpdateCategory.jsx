@@ -14,8 +14,7 @@ import {
   Input,
 } from '@chakra-ui/react';
 import { useFormik } from 'formik';
-import axios from '../../axios';
-import { useSelector } from 'react-redux';
+import { categoriesApi } from '../../api/category';
 
 export default function ModalUpdateCategory({
   isOpen,
@@ -25,17 +24,12 @@ export default function ModalUpdateCategory({
   isLoading,
   setIsLoading,
 }) {
-  const token = useSelector((state) => state.user.token);
   const toast = useToast();
 
   const handleSubmit = async (values) => {
     setIsLoading(true);
     try {
-      await axios.patch(`categories/${clickedData?.id}`, values, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await categoriesApi.update(clickedData?.id, values);
       toast({
         title: 'Success',
         description: `Category has been updated`,

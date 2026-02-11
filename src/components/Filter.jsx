@@ -3,7 +3,7 @@ import { Search2Icon } from '@chakra-ui/icons';
 import { Button, Input, Select, Stack } from '@chakra-ui/react';
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
-import axios from '../axios';
+import axios from '../api/client';
 import { useSelector } from 'react-redux';
 
 export default function Filter({ products, setFilteredProduct, setCurrentPage }) {

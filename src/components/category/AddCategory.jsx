@@ -13,14 +13,12 @@ import {
 } from '@chakra-ui/react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import axios from '../../axios';
 import { useCallback, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { categoriesApi } from '../../api/category';
 
 const AddCategory = ({ fetchCategories }) => {
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
-  const token = useSelector((state) => state.user.token);
 
   const validationtSchema = Yup.object().shape({
     name: Yup.string().required("Name can't be empty"),
@@ -31,11 +29,7 @@ const AddCategory = ({ fetchCategories }) => {
       setIsLoading(true);
 
       try {
-        const response = await axios.post('categories', data, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await categoriesApi.create(data);
 
         if (response.status === 201) {
           fetchCategories();
@@ -71,7 +65,7 @@ const AddCategory = ({ fetchCategories }) => {
         setIsLoading(false);
       }
     },
-    [fetchCategories, setIsLoading, toast, token],
+    [fetchCategories, setIsLoading, toast],
   );
 
   const formik = useFormik({

@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
-import axios from '../axios';
+import axios from '../api/client';
 
 import cashier from '../assets/inikasir.png';
 import { setToken, setUser } from '../redux/userSlice';

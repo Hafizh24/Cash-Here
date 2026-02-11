@@ -18,7 +18,7 @@ import * as Yup from 'yup';
 import { EditIcon } from '@chakra-ui/icons';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import axios from '../axios';
+import axios from '../api/client';
 
 const FILE_SIZE = 1024 * 1024;
 const SUPPORTED_FORMATS = ['image/jpg', 'image/gif', 'image/png', 'image/jpeg'];

@@ -19,21 +19,18 @@ import {
 } from '@chakra-ui/react';
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
-import axios from '../../axios';
-import { useSelector } from 'react-redux';
+import { productsApi } from '../../api/products';
+import { categoriesApi } from '../../api/category';
 
 function ModalUpdateProduct({ isOpen, onClose, products, fetchProducts }) {
   const toast = useToast();
-  const [category, setCategory] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const token = useSelector((state) => state.user.token);
 
   const handleSubmit = async (data) => {
     setIsLoading(true);
     try {
-      await axios.patch(`products/${products?.id}`, data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await productsApi.update(products?.id, data);
 
       fetchProducts();
       toast({ title: 'Success', description: `Data updated`, status: 'success', duration: 4000, position: 'top' });
@@ -51,12 +48,10 @@ function ModalUpdateProduct({ isOpen, onClose, products, fetchProducts }) {
     }
   };
 
-  const getCategory = async () => {
+  const getCategories = async () => {
     try {
-      const response = await axios.get('categories', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setCategory(response.data.data);
+      const response = await categoriesApi.getAll();
+      setCategories(response.data.data);
     } catch (err) {
       toast({
         title: 'Error',
@@ -69,7 +64,7 @@ function ModalUpdateProduct({ isOpen, onClose, products, fetchProducts }) {
   };
 
   useEffect(() => {
-    getCategory();
+    getCategories();
   }, []);
 
   const formik = useFormik({
@@ -125,9 +120,9 @@ function ModalUpdateProduct({ isOpen, onClose, products, fetchProducts }) {
                 onChange={formik.handleChange}
                 border={'1px'}
               >
-                {category?.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
+                {categories?.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
                   </option>
                 ))}
               </Select>

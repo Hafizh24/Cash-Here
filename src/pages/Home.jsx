@@ -1,12 +1,11 @@
 import { Flex, Heading, SimpleGrid, Skeleton, Spinner, useDisclosure } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
-import axios from '../axios';
 import Filter from '../components/Filter';
 import Pagination from '../components/Pagination';
 import Cart from '../components/Cart';
 import SidebarWithHeader from '../components/SidebarWithHeader';
 import Card from '../components/Card';
-import { useSelector } from 'react-redux';
+import { productsApi } from '../api/products';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -16,7 +15,6 @@ export default function Home() {
   const postsPerPage = 8;
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const token = useSelector((state) => state.user.token);
 
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
@@ -26,9 +24,7 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      const response = await axios.get('products', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await productsApi.getAll();
 
       setProducts(response.data.data);
       setFilteredProduct(response.data.data);
@@ -37,7 +33,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     fetchProducts();

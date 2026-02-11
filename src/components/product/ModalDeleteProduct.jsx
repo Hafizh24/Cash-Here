@@ -13,7 +13,8 @@ import {
   Text,
   useToast,
 } from '@chakra-ui/react';
-import axios from '../../axios';
+import axios from '../../api/client';
+import { productsApi } from '../../api/products';
 
 export default function ModalDeleteProduct({ isOpen, onClose, products, fetchProducts }) {
   const toast = useToast();
@@ -21,6 +22,7 @@ export default function ModalDeleteProduct({ isOpen, onClose, products, fetchPro
   const handleDelete = async () => {
     try {
       await axios.patch(`products/delete/${products.id}`);
+      await productsApi.delete(products.id);
 
       toast({
         title: 'Success',

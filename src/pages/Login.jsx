@@ -1,36 +1,19 @@
-import {
-  Button,
-  Checkbox,
-  Flex,
-  FormControl,
-  FormLabel,
-  Heading,
-  Image,
-  Input,
-  Stack,
-  Text,
-  useDisclosure,
-  useToast,
-} from '@chakra-ui/react';
+import { Button, Flex, FormControl, FormLabel, Heading, Image, Input, Stack, Text, useToast } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
-import axios from '../api/client';
-
 import cashier from '../assets/inikasir.png';
-import { setToken, setUser } from '../redux/userSlice';
-import { authApi } from '../api/auth';
+import { useAuth } from '../context/AuthContext';
 
-export default function LoginCashier() {
+export default function Login() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const toast = useToast();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { login } = useAuth();
+  // const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const handleButtonClick = () => {
-    onOpen();
-  };
+  // const handleButtonClick = () => {
+  //   onOpen();
+  // };
 
   // const [checkedItems, setCheckedItems] = useState(false);
   // const handleCheckBoxChange = () => {
@@ -44,23 +27,9 @@ export default function LoginCashier() {
 
   const handleSubmit = async (data) => {
     try {
-      // if (checkedItems === true) {
-      //   data.rememberme = true;
-      // } else {
-      //   data.rememberme = false;
-      // }
+      await login(data);
 
-      // const response = await axios.get(`auth/login?email=${data.email}&password=${data.password}`, data);
-      const response = await authApi.login(data);
-      // const response = await axios.get(
-      //   `users/user-login?username=${data.username}&password=${data.password}&rememberme=${data.rememberme}`,
-      //   data,
-      // );
-      if (response.status === 200) {
-        // dispatch(setUser(response.data?.data));
-        // dispatch(setToken(response.data?.token));
-        navigate('/home');
-      }
+      navigate('/home');
     } catch (err) {
       toast({
         title: 'Error',
@@ -143,7 +112,7 @@ export default function LoginCashier() {
                   >
                     Remember me
                   </Checkbox> */}
-                  <Button
+                  {/* <Button
                     variant={'unstyled'}
                     color={'#61876E'}
                     _hover={{ color: '#3C6255' }}
@@ -152,7 +121,7 @@ export default function LoginCashier() {
                     }}
                   >
                     Forgot password?
-                  </Button>
+                  </Button> */}
                 </Stack>
                 <Button
                   type="submit"

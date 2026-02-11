@@ -1,8 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import WelcomePage from './pages/WelcomePage';
-import LoginCashier from './pages/LoginCashier';
-import LoginAdmin from './pages/LoginAdmin';
 import Home from './pages/Home';
 import Category from './pages/Category';
 import Product from './pages/Product';
@@ -13,11 +11,11 @@ import ResetPassword from './pages/ResetPassword';
 import ErrorPage from './pages/ErrorPage';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import Login from './pages/Login';
 
 const router = createBrowserRouter([
   { path: '/', element: <WelcomePage />, errorElement: <ErrorPage /> },
-  { path: '/login-admin', element: <LoginAdmin /> },
-  { path: '/login-cashier', element: <LoginCashier /> },
+  { path: '/login', element: <Login /> },
   { path: '/verify/:token', element: <Verify /> },
   { path: '/reset-password', element: <ResetPassword /> },
   {

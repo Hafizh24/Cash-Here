@@ -10,7 +10,7 @@ export const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login-admin" replace />;
+    return <Navigate to="/login" replace />;
   }
   return children;
 };

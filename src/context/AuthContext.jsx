@@ -23,8 +23,6 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     const response = await authApi.login(credentials);
 
-    console.log(response.data.data, 'response');
-
     // store tokens
     localStorage.setItem('accessToken', response.data.data.token);
     localStorage.setItem('user', JSON.stringify(response.data.data.userData));

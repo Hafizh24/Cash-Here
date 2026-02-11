@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom'
-import admin from '../assets/admin.png'
-import { Box, Button, Flex, Heading, Image, Stack, Text } from '@chakra-ui/react'
+import { Link } from 'react-router-dom';
+import admin from '../assets/admin.png';
+import { Box, Button, Flex, Heading, Image, Stack, Text } from '@chakra-ui/react';
 
 export default function WelcomePage() {
   return (
@@ -15,11 +15,12 @@ export default function WelcomePage() {
           </Heading>
           <Flex w={'70%'}>
             <Text color={'gray.900'} fontSize={'medium'}>
-              Manage your store sales, inventory, and employees with such convenience; draw customers and increase your revenue. Build your business together with us.
+              Manage your store sales, inventory, and employees with such convenience; draw customers and increase your
+              revenue. Build your business together with us.
             </Text>
           </Flex>
           <Stack direction={'row'} spacing={3} align={'left'} alignSelf={'left'} position={'relative'}>
-            <Link to="/login-cashier">
+            <Link to="/login">
               <Button
                 w={'20rem'}
                 colorScheme={'green'}
@@ -27,8 +28,9 @@ export default function WelcomePage() {
                 borderRadius={'5px'}
                 px={6}
                 _hover={{
-                  bg: '#61876E'
-                }}>
+                  bg: '#61876E',
+                }}
+              >
                 Sign In
               </Button>
             </Link>
@@ -37,9 +39,16 @@ export default function WelcomePage() {
       </Flex>
       <Flex justifyItems={'center'} justifyContent={'center'} alignContent={'center'} flex={1}>
         <Box maxW={'100%'}>
-          <Image mt={'100px'} display={{ base: 'none', md: 'block' }} h={'45rem'} alt={'Login Image'} objectFit={'cover'} src={admin} />
+          <Image
+            mt={'100px'}
+            display={{ base: 'none', md: 'block' }}
+            h={'45rem'}
+            alt={'Login Image'}
+            objectFit={'cover'}
+            src={admin}
+          />
         </Box>
       </Flex>
     </Stack>
-  )
+  );
 }

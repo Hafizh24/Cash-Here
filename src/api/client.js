@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -17,6 +18,24 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  },
+);
+
+// Response interceptor
+apiClient.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      // clear invalid token
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+
+      // redirect to login page
+      window.location.href = '/login-admin';
+    }
     return Promise.reject(error);
   },
 );

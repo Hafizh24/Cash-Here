@@ -9,9 +9,9 @@ import {
   Input,
   Stack,
   Text,
+  useDisclosure,
   useToast,
 } from '@chakra-ui/react';
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import * as Yup from 'yup';
@@ -20,20 +20,22 @@ import axios from '../api/client';
 
 import cashier from '../assets/inikasir.png';
 import { setToken, setUser } from '../redux/userSlice';
+import { authApi } from '../api/auth';
 
 export default function LoginCashier() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const toast = useToast();
-  // const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // const handleButtonClick = () => {
-  //   onOpen();
-  // };
-  const [checkedItems, setCheckedItems] = useState(false);
-  const handleCheckBoxChange = () => {
-    setCheckedItems(!checkedItems);
+  const handleButtonClick = () => {
+    onOpen();
   };
+
+  // const [checkedItems, setCheckedItems] = useState(false);
+  // const handleCheckBoxChange = () => {
+  //   setCheckedItems(!checkedItems);
+  // };
 
   const LoginSchema = Yup.object().shape({
     email: Yup.string().required('Email is required'),
@@ -48,14 +50,15 @@ export default function LoginCashier() {
       //   data.rememberme = false;
       // }
 
-      const response = await axios.get(`auth/login?email=${data.email}&password=${data.password}`, data);
+      // const response = await axios.get(`auth/login?email=${data.email}&password=${data.password}`, data);
+      const response = await authApi.login(data);
       // const response = await axios.get(
       //   `users/user-login?username=${data.username}&password=${data.password}&rememberme=${data.rememberme}`,
       //   data,
       // );
-      if (response.data.token) {
-        dispatch(setUser(response.data?.data));
-        dispatch(setToken(response.data?.token));
+      if (response.status === 200) {
+        // dispatch(setUser(response.data?.data));
+        // dispatch(setToken(response.data?.token));
         navigate('/home');
       }
     } catch (err) {
@@ -130,7 +133,7 @@ export default function LoginCashier() {
               </FormControl>
               <Stack spacing={6}>
                 <Stack direction={{ base: 'column', sm: 'row' }} align={'start'} justify={'space-between'}>
-                  <Checkbox
+                  {/* <Checkbox
                     isChecked={checkedItems}
                     onChange={() => {
                       handleCheckBoxChange();
@@ -139,8 +142,8 @@ export default function LoginCashier() {
                     colorScheme="green"
                   >
                     Remember me
-                  </Checkbox>
-                  {/* <Button
+                  </Checkbox> */}
+                  <Button
                     variant={'unstyled'}
                     color={'#61876E'}
                     _hover={{ color: '#3C6255' }}
@@ -149,7 +152,7 @@ export default function LoginCashier() {
                     }}
                   >
                     Forgot password?
-                  </Button> */}
+                  </Button>
                 </Stack>
                 <Button
                   type="submit"

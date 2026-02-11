@@ -1,17 +1,11 @@
 import { Button, Center, FormControl, FormLabel, Input, Stack, Text, useToast } from '@chakra-ui/react';
-import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
 import { useAuth } from '../context/AuthContext';
 
-import axios from '../api/client';
-import { setToken, setUser } from '../redux/userSlice';
-import { authApi } from '../api/auth';
-
 export default function LoginAdmin() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const toast = useToast();
   const { login } = useAuth();
 
@@ -34,19 +28,11 @@ export default function LoginAdmin() {
 
   const handleSubmitLogin = async (data) => {
     try {
-      // const response = await axios.get(`auth/login?email=${data.email}&password=${data.password}`);
-      // const response = await authApi.login(data);
-      await login(data);
+      const response = await login(data);
 
-      // if (response.status === 200) {
-      // store token and user data in local storage
-      // localStorage.setItem('accessToken', response.data.data.token);
-      // localStorage.setItem('user', JSON.stringify(response.data.data.userData));
-      // console.log(response.data.data.token);
-      // dispatch(setUser(response.data.data.userData));
-      // dispatch(setToken(response.data.data.token));
-      navigate('/home');
-      // }
+      if (response.status === 200) {
+        navigate('/home');
+      }
     } catch (error) {
       toast({
         title: 'Error',

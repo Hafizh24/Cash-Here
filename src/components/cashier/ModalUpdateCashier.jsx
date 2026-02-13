@@ -13,35 +13,35 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { useFormik } from 'formik';
-import axios from '../../api/client';
-import { useSelector } from 'react-redux';
+import { cashiersApi } from '../../api/cashier';
+import { useState } from 'react';
 
 function ModalUpdateCashier({ isOpen, onClose, clickedData, fetchCashier }) {
   const toast = useToast();
-  const token = useSelector((state) => state.user.token);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    setLoading(true);
     try {
       const updatedStatus = !clickedData.is_enabled;
 
-      await axios.patch(
-        'users/update-status',
-        { id: clickedData.id, is_enabled: updatedStatus },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-
-      toast({
-        title: 'Success',
-        description: `${clickedData.username} has been ${updatedStatus ? 'enabled' : 'disabled'}`,
-        status: 'success',
-        duration: 4000,
-        position: 'top',
+      const response = await cashiersApi.updateStatus(clickedData.id, {
+        id: clickedData.id,
+        is_enabled: updatedStatus,
       });
 
-      fetchCashier();
-      onClose();
+      if (response.status === 200) {
+        toast({
+          title: 'Success',
+          description: `${clickedData.username} has been ${updatedStatus ? 'enabled' : 'disabled'}`,
+          status: 'success',
+          duration: 4000,
+          position: 'top',
+        });
+
+        fetchCashier();
+        onClose();
+      }
     } catch (err) {
       toast({
         title: 'Error',
@@ -50,6 +50,8 @@ function ModalUpdateCashier({ isOpen, onClose, clickedData, fetchCashier }) {
         duration: 4000,
         position: 'top',
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -95,7 +97,7 @@ function ModalUpdateCashier({ isOpen, onClose, clickedData, fetchCashier }) {
               _hover={{ bg: '#61876E' }}
               rounded={'full'}
             >
-              {actionText}
+              {loading ? 'Loading...' : actionText}
             </Button>
             <Button onClick={onClose} rounded={'full'}>
               Cancel

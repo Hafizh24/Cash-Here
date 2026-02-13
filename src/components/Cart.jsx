@@ -23,7 +23,6 @@ import {
 } from '@chakra-ui/react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRef, useState } from 'react';
-import axios from '../api/client';
 import ModalConfirmPayment from './cart/ModalConfirmPayment';
 import ModalReceipt from './cart/ModalReceipt';
 import CurrencyInput from 'react-currency-input-field';
@@ -39,7 +38,7 @@ const Cart = ({ data, onClose, isOpen }) => {
   const receiptModal = useDisclosure();
 
   const carts = useSelector((state) => state.cart.items);
-  const token = useSelector((state) => state.user.token);
+  // const token = useSelector((state) => state.user.token);
 
   const [amount, setAmount] = useState('');
 
@@ -73,15 +72,15 @@ const Cart = ({ data, onClose, isOpen }) => {
 
   const handleSubmit = async () => {
     try {
-      await axios.post(
-        'transactions',
-        { cart: carts, total_price: total, amount, change: change },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      // await axios.post(
+      //   'transactions',
+      //   { cart: carts, total_price: total, amount, change: change },
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   },
+      // );
 
       onClose();
       receiptModal.onOpen();

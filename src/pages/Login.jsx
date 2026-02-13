@@ -1,24 +1,32 @@
-import { Button, Flex, FormControl, FormLabel, Heading, Image, Input, Stack, Text, useToast } from '@chakra-ui/react';
+import {
+  Button,
+  Flex,
+  FormControl,
+  FormLabel,
+  Heading,
+  Image,
+  Input,
+  Stack,
+  Text,
+  useDisclosure,
+  useToast,
+} from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
 import cashier from '../assets/inikasir.png';
 import { useAuth } from '../context/AuthContext';
+import ForgotPassword from '../components/ForgotPassword';
 
 export default function Login() {
   const navigate = useNavigate();
   const toast = useToast();
   const { login } = useAuth();
-  // const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // const handleButtonClick = () => {
-  //   onOpen();
-  // };
-
-  // const [checkedItems, setCheckedItems] = useState(false);
-  // const handleCheckBoxChange = () => {
-  //   setCheckedItems(!checkedItems);
-  // };
+  const handleButtonClick = () => {
+    onOpen();
+  };
 
   const LoginSchema = Yup.object().shape({
     email: Yup.string().required('Email is required'),
@@ -27,17 +35,22 @@ export default function Login() {
 
   const handleSubmit = async (data) => {
     try {
-      await login(data);
+      const response = await login(data);
 
-      navigate('/home');
+      if (response.status === 200) {
+        navigate('/home');
+      }
     } catch (err) {
       toast({
         title: 'Error',
-        description: `${err.response.data.message}`,
+        description: err?.response?.data?.message || 'Something went wrong',
         status: 'error',
-        duration: 3000,
+        duration: 5000,
+        isClosable: true,
         position: 'top',
       });
+    } finally {
+      formik.resetForm();
     }
   };
 
@@ -47,9 +60,8 @@ export default function Login() {
       password: '',
     },
     validationSchema: LoginSchema,
-    onSubmit: (values, { resetForm }) => {
-      handleSubmit(values);
-      resetForm();
+    onSubmit: async (values) => {
+      await handleSubmit(values);
     },
   });
 
@@ -112,7 +124,7 @@ export default function Login() {
                   >
                     Remember me
                   </Checkbox> */}
-                  {/* <Button
+                  <Button
                     variant={'unstyled'}
                     color={'#61876E'}
                     _hover={{ color: '#3C6255' }}
@@ -121,7 +133,7 @@ export default function Login() {
                     }}
                   >
                     Forgot password?
-                  </Button> */}
+                  </Button>
                 </Stack>
                 <Button
                   type="submit"
@@ -137,7 +149,7 @@ export default function Login() {
           </Stack>
         </Flex>
       </Stack>
-      {/* <ForgotPassword isOpen={isOpen} onClose={onClose} isCentered /> */}
+      <ForgotPassword isOpen={isOpen} onClose={onClose} isCentered />
     </>
   );
 }

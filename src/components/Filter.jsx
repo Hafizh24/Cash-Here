@@ -3,18 +3,14 @@ import { Search2Icon } from '@chakra-ui/icons';
 import { Button, Input, Select, Stack } from '@chakra-ui/react';
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
-import axios from '../api/client';
-import { useSelector } from 'react-redux';
+import { categoriesApi } from '../api/category';
 
 export default function Filter({ products, setFilteredProduct, setCurrentPage }) {
   const [categories, setCategories] = useState([]);
-  const token = useSelector((state) => state.user.token);
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('categories', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await categoriesApi.getAll();
       setCategories(response.data.data);
     } catch (err) {
       console.log(err.response.data.message);

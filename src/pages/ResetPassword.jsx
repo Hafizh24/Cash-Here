@@ -1,7 +1,5 @@
 import {
-  Box,
   FormControl,
-  FormLabel,
   Input,
   Stack,
   Button,
@@ -9,11 +7,13 @@ import {
   useColorModeValue,
   Text,
   useToast,
+  Box,
+  FormLabel,
 } from '@chakra-ui/react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from '../api/client';
+import { usersApi } from '../api/users';
 
 export default function ResetPassword() {
   const params = useParams();
@@ -21,26 +21,30 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   const ResetPasswordSchema = Yup.object().shape({
-    password: Yup.string().min(3, 'Must be at least 3 characters long').required("Password can't be empty"),
+    password: Yup.string().min(6, 'Must be at least 6 characters long').required("Password can't be empty"),
     confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password'), null], 'Password harus sama dengan konfirmasi password') // Validasi konfirmasi password
-      .required('Confirm Password tidak boleh kosong'),
+      .oneOf([Yup.ref('password'), null], 'Passwords must match') // password confirmation
+      .required('Confirm Password is required'),
   });
 
   const handleSubmit = async (values, action) => {
     try {
-      await axios.patch('users/update-user-password', values, {
-        headers: { Authorization: `Bearer ${params.token}` },
-      });
+      // await axios.patch('users/update-user-password', values, {
+      //   headers: { Authorization: `Bearer ${params.token}` },
+      // });
 
-      toast({
-        title: 'Success',
-        description: `Password has been updated`,
-        status: 'success',
-        duration: 4000,
-        position: 'top',
-      });
-      navigate('/');
+      const response = await usersApi.updatePassword(values, params.token);
+
+      if (response.status === 200) {
+        toast({
+          title: 'Success',
+          description: `Password has been updated`,
+          status: 'success',
+          duration: 4000,
+          position: 'top',
+        });
+        navigate('/');
+      }
     } catch (err) {
       toast({
         title: 'Error',

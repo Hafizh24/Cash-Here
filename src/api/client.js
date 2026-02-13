@@ -28,7 +28,8 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    const isLoginRequest = error.config?.url?.includes('/login');
+    if (error.response?.status === 401 && !isLoginRequest) {
       // clear invalid token
       localStorage.removeItem('accessToken');
       localStorage.removeItem('user');
